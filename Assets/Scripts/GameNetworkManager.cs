@@ -12,9 +12,11 @@ public class GameNetworkManager : MonoBehaviour
     public Lobby? CurrentLobby { get; private set; }
 
     private ulong m_ClientId;
-    private const string APP_ID = "b4bcc8776e19";
     private PlayerSpawner m_Spawner;
     private FacepunchTransport m_Transport;
+    
+    // Random hash to distinguish our lobbies from others with default steam app id (480)
+    private const string APP_ID = "b4bcc8776e19"; 
 
     private void Awake()
     {
@@ -79,6 +81,8 @@ public class GameNetworkManager : MonoBehaviour
     {
         CurrentLobby?.Leave();
         if (NetworkManager.Singleton == null) return;
+        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
+        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
         NetworkManager.Singleton.Shutdown();
     }
     
@@ -89,8 +93,9 @@ public class GameNetworkManager : MonoBehaviour
 
     public async void Join()
     {
-        Lobby[] lobbies = await RequestLobbyList();
-        Debug.Log(lobbies[0].GetData("name"));
+        var lobbies = await RequestLobbyList();
+        Debug.Log(lobbies[0].GetData("name")); // Debug code
+        
         var lobby = lobbies[0];
         CurrentLobby = lobby;
         CurrentLobby?.Join();
@@ -107,7 +112,6 @@ public class GameNetworkManager : MonoBehaviour
     }
 
     #region Network Callbacks
-
     private void OnServerStarted()
     {
         Debug.Log("Server has been started!", this);
@@ -126,11 +130,9 @@ public class GameNetworkManager : MonoBehaviour
         NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
     }
-
     #endregion
 
     #region Steam Callbacks
-
     private void OnLobbyInvite(Friend friend, Lobby lobby)
     {
         Debug.Log($"You got an invite from {friend.Name}", this);
@@ -140,14 +142,16 @@ public class GameNetworkManager : MonoBehaviour
     {
         if (result != Result.OK)
         {
-            Debug.LogError($"Lobby couldn't be created!, {result}", this);
+            Debug.LogError($"Lobby could not be created!, {result}", this);
             return;
         }
 
-        lobby.SetPublic(); 
-        lobby.SetData("name", "Test name");
-        lobby.SetData("AppID", APP_ID);
-        lobby.SetJoinable(true);
+        {   // Set lobby data here
+            lobby.SetPublic();
+            lobby.SetData("name", "Test name");
+            lobby.SetData("AppID", APP_ID);
+            lobby.SetJoinable(true);
+        }
 
         Debug.Log("Lobby has been created!");
     }
@@ -163,19 +167,14 @@ public class GameNetworkManager : MonoBehaviour
         StartClient(lobby.Owner.Id);
     }
 
-    private void OnLobbyGameCreated(Lobby lobby, uint ip, ushort port, SteamId id)
-    {
-    }
+    private void OnLobbyGameCreated(Lobby lobby, uint ip, ushort port, SteamId id) { }
 
-    private void OnLobbyMemberJoined(Lobby lobby, Friend friend)
-    {
-    }
+    private void OnLobbyMemberJoined(Lobby lobby, Friend friend) { }
 
     private void OnGameLobbyJoinRequested(Lobby lobby, SteamId id)
     {
         CurrentLobby = lobby;
         CurrentLobby?.Join();
     }
-
     #endregion
 }
