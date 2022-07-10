@@ -8,7 +8,8 @@ using Netcode.Transports.Facepunch;
 public class GameNetworkManager : MonoBehaviour
 {
     public static GameNetworkManager Instance { get; private set; }
-
+    
+    public HostGameManager.HostLobbyData LobbyData;
     public Lobby? CurrentLobby { get; private set; }
 
     private ulong m_ClientId;
@@ -33,7 +34,6 @@ public class GameNetworkManager : MonoBehaviour
     private void Start()
     {
         m_Transport = GetComponent<FacepunchTransport>();
-        m_Spawner = GameObject.Find("PlayerSpawner").GetComponent<PlayerSpawner>();
 
         SteamMatchmaking.OnLobbyInvite += OnLobbyInvite;
         SteamMatchmaking.OnLobbyCreated += OnLobbyCreated;
@@ -59,11 +59,13 @@ public class GameNetworkManager : MonoBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
     }
 
-    public async void StartHost(int lobbySize = 100)
+    public async Task<Lobby?> StartHost(HostGameManager.HostLobbyData data, int lobbySize = 100)
     {
+        LobbyData = data;
         NetworkManager.Singleton.OnServerStarted += OnServerStarted;
         NetworkManager.Singleton.StartHost();
         CurrentLobby = await SteamMatchmaking.CreateLobbyAsync(lobbySize);
+        return CurrentLobby;
     }
 
     public void StartClient(SteamId id)
@@ -148,11 +150,11 @@ public class GameNetworkManager : MonoBehaviour
 
         {   // Set lobby data here
             lobby.SetPublic();
-            lobby.SetData("name", "Test name");
+            lobby.SetData("name", LobbyData.Name);
             lobby.SetData("AppID", APP_ID);
             lobby.SetJoinable(true);
         }
-
+        
         Debug.Log("Lobby has been created!");
     }
 
