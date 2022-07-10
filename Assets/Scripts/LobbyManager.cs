@@ -1,17 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using Steamworks;
-using UnityEditor.PackageManager;
+using Steamworks.Data;
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 public class LobbyManager : MonoBehaviour
 {
-    
     public Transform LayoutLobby;
     public GameObject LobbyAvatarPrefab;
     public UnityEngine.UI.Text LobbyName;
-    //public UnityEngine.UI.Button ReadyButton;
-    //
+    public UnityEngine.UI.Button ReadyButton;
+    
     private bool m_Ready = false;
     //private bool m_GameStarted = false;
     
@@ -19,9 +19,16 @@ public class LobbyManager : MonoBehaviour
 
     private void Start()
     {
+        SteamMatchmaking.OnLobbyMemberDataChanged += OnLobbyMemberDataChanged;
+        
         InitializeLobby();
     }
-    
+
+    private void OnDestroy()
+    {
+        SteamMatchmaking.OnLobbyMemberDataChanged -= OnLobbyMemberDataChanged;
+    }
+
     private void InitializeLobby()
     {
         // Destroy the old lobby
@@ -51,6 +58,22 @@ public class LobbyManager : MonoBehaviour
         tmp.gameObject.name = new Friend(steamId).Name;
         tmp.SteamID = steamId;
         return tmp;
+    }
+
+    public void Ready()
+    {
+        Debug.Log("click");
+        m_Ready = !m_Ready;
+        GameNetworkManager.Instance.CurrentLobby.Value.SetData("Ready", m_Ready.ToString());
+        ReadyButton.GetComponent<UnityEngine.UI.Image>().color = m_Ready ? new Color(0, 0.25f, 0) : new Color(0.25f, 0, 0);
+        ReadyButton.GetComponentInChildren<UnityEngine.UI.Text>().text = m_Ready ? "Ready" : "Click to Ready up";
+    }
+    
+    private void OnLobbyMemberDataChanged(Lobby lobby, Friend friend)
+    {
+        //m_LobbyAvatars[friend.Id].Refresh();
+        Debug.Log($"Data changed for steamId={friend.Id}");
+        //CheckForEveryoneReady();
     }
   
 }

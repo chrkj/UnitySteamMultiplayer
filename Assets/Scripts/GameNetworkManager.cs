@@ -178,5 +178,8 @@ public class GameNetworkManager : MonoBehaviour
         CurrentLobby = lobby;
         CurrentLobby?.Join();
     }
+    
+  
+    
     #endregion
 }
