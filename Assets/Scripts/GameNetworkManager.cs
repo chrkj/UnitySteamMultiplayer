@@ -9,15 +9,14 @@ public class GameNetworkManager : MonoBehaviour
 {
     public static GameNetworkManager Instance { get; private set; }
     
+    // Random hash to distinguish our lobbies from others with default steam app id (480)
+    public const string APP_ID = "b4bcc8776e19"; 
     public HostGameManager.HostLobbyData LobbyData;
     public Lobby? CurrentLobby { get; private set; }
 
     private ulong m_ClientId;
     private PlayerSpawner m_Spawner;
     private FacepunchTransport m_Transport;
-    
-    // Random hash to distinguish our lobbies from others with default steam app id (480)
-    private const string APP_ID = "b4bcc8776e19"; 
 
     private void Awake()
     {
@@ -93,12 +92,8 @@ public class GameNetworkManager : MonoBehaviour
         return await SteamMatchmaking.LobbyList.WithKeyValue("AppID", APP_ID).RequestAsync();
     }
 
-    public async void Join()
+    public void JoinLobby(Lobby lobby)
     {
-        var lobbies = await RequestLobbyList();
-        Debug.Log(lobbies[0].GetData("name")); // Debug code
-        
-        var lobby = lobbies[0];
         CurrentLobby = lobby;
         CurrentLobby?.Join();
     }
