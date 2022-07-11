@@ -7,6 +7,7 @@ public class PlayerSpawner : NetworkBehaviour
 
     private void Start()
     {
+        print("spawning");
         SpawnPlayerPrefab_ServerRpc(NetworkManager.LocalClientId);
     }
 

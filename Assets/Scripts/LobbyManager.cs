@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Steamworks;
 using Steamworks.Data;
+using Unity.Multiplayer.Samples.Utilities;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -55,12 +56,11 @@ public class LobbyManager : NetworkBehaviour
         StartButton.interactable = false;
         m_Lobby.SetMemberData("Start", "true");
         
-        for (int i = 5; i > 0; i--)
-        {   // TODO: Should sync chat messages
-            m_ChatManager.SendMessageToChat($"{i}...");
-            await Task.Delay(1000);
-        }
-        NetworkManager.SceneManager.LoadScene("InGameScene", LoadSceneMode.Single);
+        await Task.Delay(5000);
+
+        //LoadingData.SceneToLoad = "InGameScene";
+        //NetworkManager.SceneManager.LoadScene("LoadingScene", LoadSceneMode.Single);
+        SceneLoaderWrapper.Instance.LoadScene("InGameScene", useNetworkSceneManager: true);
     }
 
     [ClientRpc]
