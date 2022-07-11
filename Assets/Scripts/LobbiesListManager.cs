@@ -31,8 +31,8 @@ public class LobbiesListManager : MonoBehaviour
 
     public async void DisplayLobbies()
     {
-        var lobbies = await SteamMatchmaking.LobbyList.RequestAsync();
-        //var lobbies = await SteamMatchmaking.LobbyList.WithKeyValue("AppID", GameNetworkManager.APP_ID).RequestAsync();
+        //var lobbies = await SteamMatchmaking.LobbyList.RequestAsync();
+        var lobbies = await SteamMatchmaking.LobbyList.WithKeyValue("AppID", GameNetworkManager.APP_ID).RequestAsync();
         for (int i = 0; i < lobbies.Length; i++)
         {
             var lobby = lobbies[i];

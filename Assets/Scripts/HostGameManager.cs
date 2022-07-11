@@ -12,8 +12,14 @@ public class HostGameManager : MonoBehaviour
         HostLobbyData data = new HostLobbyData();
         data.Name = GameName.text;
         data.Password = GamePassword.text; 
-        await GameNetworkManager.Instance.StartHost(data);
-        SceneManager.LoadScene("LobbyScene");
+        var lobby = await GameNetworkManager.Instance.StartHost(data, 10);
+        lobby.Value.SetPublic();
+        lobby.Value.SetJoinable(true);
+    }
+    
+    public void GoBackToMainMenu()
+    {
+        SceneManager.LoadScene("MainMenuScene");
     }
 
     public class HostLobbyData
@@ -21,5 +27,5 @@ public class HostGameManager : MonoBehaviour
         public string Name;
         public string Password;
     }
-
+    
 }

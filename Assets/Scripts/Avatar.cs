@@ -7,7 +7,6 @@ using UnityEngine.UI;
         public ulong SteamID;
         public Text TextName;
         public Image AvatarImage;
-        public Image ImageNameBackground;
 
         void Start()
         {

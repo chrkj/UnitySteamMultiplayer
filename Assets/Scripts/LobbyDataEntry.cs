@@ -15,6 +15,7 @@ public class LobbyDataEntry : MonoBehaviour
 
     public void JoinLobby()
     {
+        Debug.Log($"Joining {Lobby.Owner.Name}'s lobby");
         GameNetworkManager.Instance.JoinLobby(Lobby);
     }
 }

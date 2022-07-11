@@ -4,6 +4,7 @@ using Unity.Netcode;
 using Steamworks;
 using Steamworks.Data;
 using Netcode.Transports.Facepunch;
+using UnityEngine.SceneManagement;
 
 public class GameNetworkManager : MonoBehaviour
 {
@@ -18,50 +19,34 @@ public class GameNetworkManager : MonoBehaviour
     private PlayerSpawner m_Spawner;
     private FacepunchTransport m_Transport;
 
-    private void Awake()
-    {
-        if (Instance == null)
-            Instance = this;
-        else
-        {
-            Destroy(this);
-            return;
-        }
-        DontDestroyOnLoad(gameObject);
-    }
+    private void Awake() => Instance = this;
 
     private void Start()
     {
         m_Transport = GetComponent<FacepunchTransport>();
 
-        SteamMatchmaking.OnLobbyInvite += OnLobbyInvite;
         SteamMatchmaking.OnLobbyCreated += OnLobbyCreated;
         SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
-        SteamMatchmaking.OnLobbyGameCreated += OnLobbyGameCreated;
-        SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
         SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
+
+        SceneManager.LoadScene("MainMenuScene");
     }
 
     private void OnDestroy()
     {
-        SteamMatchmaking.OnLobbyInvite -= OnLobbyInvite;
         SteamMatchmaking.OnLobbyCreated -= OnLobbyCreated;
         SteamMatchmaking.OnLobbyEntered -= OnLobbyEntered;
-        SteamMatchmaking.OnLobbyGameCreated -= OnLobbyGameCreated;
-        SteamMatchmaking.OnLobbyMemberJoined -= OnLobbyMemberJoined;
         SteamFriends.OnGameLobbyJoinRequested -= OnGameLobbyJoinRequested;
         
         if (NetworkManager.Singleton == null) return;
         
-        NetworkManager.Singleton.OnServerStarted -= OnServerStarted;
         NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
     }
 
-    public async Task<Lobby?> StartHost(HostGameManager.HostLobbyData data, int lobbySize = 100)
+    public async Task<Lobby?> StartHost(HostGameManager.HostLobbyData data, int lobbySize = 10)
     {
         LobbyData = data;
-        NetworkManager.Singleton.OnServerStarted += OnServerStarted;
         NetworkManager.Singleton.StartHost();
         CurrentLobby = await SteamMatchmaking.CreateLobbyAsync(lobbySize);
         return CurrentLobby;
@@ -78,15 +63,6 @@ public class GameNetworkManager : MonoBehaviour
             Debug.Log($"Client has joined targetId={id}.", this);
     }
 
-    public void Disconnect()
-    {
-        CurrentLobby?.Leave();
-        if (NetworkManager.Singleton == null) return;
-        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
-        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
-        NetworkManager.Singleton.Shutdown();
-    }
-    
     public async Task<Lobby[]> RequestLobbyList()
     {
         return await SteamMatchmaking.LobbyList.WithKeyValue("AppID", APP_ID).RequestAsync();
@@ -98,22 +74,16 @@ public class GameNetworkManager : MonoBehaviour
         CurrentLobby?.Join();
     }
 
-    public void SpawnPlayer()
-    {
-        m_Spawner.SpawnPlayerPrefab_ServerRpc(m_ClientId);
-    }
-    
     private void OnApplicationQuit()
     {
-        Disconnect();
+        CurrentLobby?.Leave();
+        if (NetworkManager.Singleton == null) return;
+        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
+        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
+        NetworkManager.Singleton.Shutdown();
     }
 
     #region Network Callbacks
-    private void OnServerStarted()
-    {
-        Debug.Log("Server has been started!", this);
-    }
-
     private void OnClientConnectedCallback(ulong clientId)
     {
         m_ClientId = clientId;
@@ -130,11 +100,6 @@ public class GameNetworkManager : MonoBehaviour
     #endregion
 
     #region Steam Callbacks
-    private void OnLobbyInvite(Friend friend, Lobby lobby)
-    {
-        Debug.Log($"You got an invite from {friend.Name}", this);
-    }
-
     private void OnLobbyCreated(Result result, Lobby lobby)
     {
         if (result != Result.OK)
@@ -149,13 +114,13 @@ public class GameNetworkManager : MonoBehaviour
             lobby.SetData("AppID", APP_ID);
             lobby.SetJoinable(true);
         }
-        
         Debug.Log("Lobby has been created!");
     }
 
     private void OnLobbyEntered(Lobby lobby)
     {
         Debug.Log($"Entered in lobby", this);
+        SceneManager.LoadScene("LobbyScene");
         if (NetworkManager.Singleton.IsHost)
         {
             Debug.Log($"You are the host!", this);
@@ -164,17 +129,10 @@ public class GameNetworkManager : MonoBehaviour
         StartClient(lobby.Owner.Id);
     }
 
-    private void OnLobbyGameCreated(Lobby lobby, uint ip, ushort port, SteamId id) { }
-
-    private void OnLobbyMemberJoined(Lobby lobby, Friend friend) { }
-
     private void OnGameLobbyJoinRequested(Lobby lobby, SteamId id)
     {
         CurrentLobby = lobby;
         CurrentLobby?.Join();
     }
-    
-  
-    
     #endregion
 }

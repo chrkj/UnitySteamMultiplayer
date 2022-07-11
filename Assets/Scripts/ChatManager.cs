@@ -9,13 +9,6 @@ public class ChatManager : MonoBehaviour
 
     private const int CHAT_BUFFER_SIZE = 250;
     private readonly Queue<GameObject> m_Messages = new Queue<GameObject>();
-    
-    void Update()
-    {
-        // Debug code
-        if (Input.GetKeyDown(KeyCode.Space))
-            SendMessageToChat("Test");
-    }
 
     public void SendMessageToChat(string text)
     {
