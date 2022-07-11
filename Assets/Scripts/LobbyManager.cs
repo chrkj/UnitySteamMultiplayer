@@ -60,7 +60,7 @@ public class LobbyManager : NetworkBehaviour
     public void Disconnect()
     {
         m_Lobby.Leave();
-        SceneManager.LoadScene("JoinGameScene");
+        SceneManager.LoadScene("MainMenuScene");
     }
 
     private void RefreshLobby()
