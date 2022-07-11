@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Steamworks;
 using Steamworks.Data;
@@ -55,7 +56,7 @@ public class LobbyManager : NetworkBehaviour
         m_Lobby.SetMemberData("Start", "true");
         
         for (int i = 5; i > 0; i--)
-        {
+        {   // TODO: Should sync chat messages
             m_ChatManager.SendMessageToChat($"{i}...");
             await Task.Delay(1000);
         }
@@ -142,6 +143,7 @@ public class LobbyManager : NetworkBehaviour
         {
             ReadyButton.interactable = false;
             LeaveButton.interactable = false;
+            Countdown();
         }
         CheckForEveryoneReady();
     }
@@ -156,6 +158,16 @@ public class LobbyManager : NetworkBehaviour
     {
         m_ChatManager.SendMessageToChat($"{friend.Name} left the lobby.");
         RefreshLobby();
+    }
+
+    private async void Countdown()
+    {
+        // TODO: Should sync chat messages
+        for (int i = 5; i > 0; i--)
+        {
+            m_ChatManager.SendMessageToChat($"{i}...");
+            await Task.Delay(1000);
+        }
     }
     
 }
