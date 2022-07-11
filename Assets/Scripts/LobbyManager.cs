@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Steamworks;
 using Steamworks.Data;
 using Unity.Netcode;
@@ -15,9 +16,11 @@ public class LobbyManager : NetworkBehaviour
     public UnityEngine.UI.Text LobbyName;
     public UnityEngine.UI.Button ReadyButton;
     public UnityEngine.UI.Button StartButton;
+    public UnityEngine.UI.Button LeaveButton;
 
     private bool m_Ready;
     private Lobby m_Lobby;
+    private bool m_Gamestarted;
     private ChatManager m_ChatManager;
     
     private Dictionary<ulong, LobbyAvatar> m_LobbyAvatars = new Dictionary<ulong, LobbyAvatar>();
@@ -44,11 +47,28 @@ public class LobbyManager : NetworkBehaviour
         SteamMatchmaking.OnLobbyMemberDataChanged -= OnLobbyMemberDataChanged;
     }
 
-    public void StartGame()
+    public async void StartGame()
     {
+        // TODO: Make clientrpc call work
+        m_Gamestarted = true;
+        StartButton.interactable = false;
+        m_Lobby.SetMemberData("Start", "true");
+        
+        for (int i = 5; i > 0; i--)
+        {
+            m_ChatManager.SendMessageToChat($"{i}...");
+            await Task.Delay(1000);
+        }
         NetworkManager.SceneManager.LoadScene("InGameScene", LoadSceneMode.Single);
     }
-    
+
+    [ClientRpc]
+    public void DisableReadyButtons_ClientRpc(ClientRpcParams clientRpcParams = default)
+    {
+        Debug.Log("DisableReadyButtons_ClientRpc");
+        ReadyButton.interactable = false;
+    }
+
     public void Ready()
     {
         m_Ready = !m_Ready;
@@ -82,7 +102,7 @@ public class LobbyManager : NetworkBehaviour
     
     private LobbyAvatar InstantiateLobbyAvatar(ulong steamId)
     {
-        LobbyAvatar tmp = Instantiate(LobbyAvatarPrefab, LayoutLobby, false).GetComponent<LobbyAvatar>();
+        var tmp = Instantiate(LobbyAvatarPrefab, LayoutLobby, false).GetComponent<LobbyAvatar>();
         tmp.SteamID = steamId;
         tmp.gameObject.name = new Friend(steamId).Name;
 
@@ -95,7 +115,7 @@ public class LobbyManager : NetworkBehaviour
     private void CheckForEveryoneReady()
     {
         // Only the lobby owner checks if everyone is ready and then sends a message to everyone to start the game
-        if (m_Lobby.MemberCount > 0)
+        if (!m_Gamestarted && m_Lobby.MemberCount > 0)
         {
             if (NetworkManager.Singleton.IsHost)
             {
@@ -109,11 +129,8 @@ public class LobbyManager : NetworkBehaviour
                         break;
                     }
                 }
-
                 if (everyoneReady)
-                {
                     StartButton.interactable = true;
-                }
             }
         }
     }
@@ -121,6 +138,11 @@ public class LobbyManager : NetworkBehaviour
     private void OnLobbyMemberDataChanged(Lobby lobby, Friend friend)
     {
         m_LobbyAvatars[friend.Id].Refresh();
+        if (m_Lobby.GetMemberData(friend, "Start") == "true")
+        {
+            ReadyButton.interactable = false;
+            LeaveButton.interactable = false;
+        }
         CheckForEveryoneReady();
     }
 

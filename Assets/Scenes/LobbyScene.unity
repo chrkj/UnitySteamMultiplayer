@@ -400,6 +400,7 @@ MonoBehaviour:
   LobbyName: {fileID: 46097811}
   ReadyButton: {fileID: 2754642467208507823}
   StartButton: {fileID: 1443637077}
+  LeaveButton: {fileID: 1973732950}
 --- !u!4 &1438824354
 Transform:
   m_ObjectHideFlags: 0
