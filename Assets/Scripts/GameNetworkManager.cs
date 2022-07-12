@@ -121,6 +121,7 @@ public class GameNetworkManager : MonoBehaviour
     {
         Debug.Log($"Entered in lobby", this);
         SceneManager.LoadScene("LobbyScene");
+        SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
         if (NetworkManager.Singleton.IsHost)
         {
             Debug.Log($"You are the host!", this);

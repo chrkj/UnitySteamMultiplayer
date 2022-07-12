@@ -1,18 +1,17 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-
 public class SceneLoaderWrapper : NetworkBehaviour
 {
-    [SerializeField] ClientLoadingScreen m_ClientLoadingScreen;
-    [SerializeField] LoadingProgressManager m_LoadingProgressManager;
-
-    bool IsNetworkSceneManagementEnabled => NetworkManager != null && NetworkManager.SceneManager != null && NetworkManager.NetworkConfig.EnableSceneManagement;
-
     public static SceneLoaderWrapper Instance { get; private set; }
-
-    public void Awake()
+    
+    [SerializeField] private LoadingProgressManager m_LoadingProgressManager;
+    [SerializeField] private ClientLoadingScreen m_ClientLoadingScreen;
+    private bool IsNetworkSceneManagementEnabled => NetworkManager != null && NetworkManager.SceneManager != null && NetworkManager.NetworkConfig.EnableSceneManagement;
+    
+    private void Awake()
     {
         if (Instance != null)
             Destroy(gameObject);
@@ -22,11 +21,11 @@ public class SceneLoaderWrapper : NetworkBehaviour
         DontDestroyOnLoad(this);
     }
 
-    void Start()
+    private void Start()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
-
+    
     public override void OnDestroy()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -36,9 +35,7 @@ public class SceneLoaderWrapper : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         if (NetworkManager != null && NetworkManager.SceneManager != null)
-        {
             NetworkManager.SceneManager.OnSceneEvent -= OnSceneEvent;
-        }
     }
 
     /// <summary>
@@ -48,9 +45,7 @@ public class SceneLoaderWrapper : NetworkBehaviour
     public void AddOnSceneEventCallback()
     {
         if (IsNetworkSceneManagementEnabled)
-        {
             NetworkManager.SceneManager.OnSceneEvent += OnSceneEvent;
-        }
     }
 
     /// <summary>
@@ -65,40 +60,31 @@ public class SceneLoaderWrapper : NetworkBehaviour
     {
         if (useNetworkSceneManager)
         {
-            if (IsNetworkSceneManagementEnabled && !NetworkManager.ShutdownInProgress)
-            {
-                if (NetworkManager.IsServer)
-                {
-                    // If is active server and NetworkManager uses scene management, load scene using NetworkManager's SceneManager
-                    NetworkManager.SceneManager.LoadScene(sceneName, loadSceneMode);
-                }
-            }
+            if (!IsNetworkSceneManagementEnabled || NetworkManager.ShutdownInProgress || !NetworkManager.IsServer) return;
+            NetworkManager.SceneManager.LoadScene(sceneName, loadSceneMode);
         }
         else
         {
-            // Load using SceneManager
             var loadOperation = SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
-            if (loadSceneMode == LoadSceneMode.Single)
-            {
-                m_ClientLoadingScreen.StartLoadingScreen(sceneName);
-                m_LoadingProgressManager.LocalLoadOperation = loadOperation;
-            }
+            if (loadSceneMode != LoadSceneMode.Single) return;
+            m_ClientLoadingScreen.StartLoadingScreen(sceneName);
+            m_LoadingProgressManager.LocalLoadOperation = loadOperation;
         }
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
     {
         if (NetworkManager.ShutdownInProgress)
-        {
             m_ClientLoadingScreen.StopLoadingScreen();
-        }
     }
 
-    void OnSceneEvent(SceneEvent sceneEvent)
+    private void OnSceneEvent(SceneEvent sceneEvent)
     {
         switch (sceneEvent.SceneEventType)
         {
-            case SceneEventType.Load: // Server told client to load a scene
+            // Server told client to load a scene
+            case SceneEventType.Load:
+            {
                 // Only executes on client
                 if (NetworkManager.IsClient)
                 {
@@ -114,9 +100,12 @@ public class SceneLoaderWrapper : NetworkBehaviour
                         m_LoadingProgressManager.LocalLoadOperation = sceneEvent.AsyncOperation;
                     }
                 }
-
                 break;
-            case SceneEventType.LoadEventCompleted: // Server told client that all clients finished loading a scene
+            }
+            
+            // Server told client that all clients finished loading a scene
+            case SceneEventType.LoadEventCompleted:
+            {
                 // Only executes on client
                 if (NetworkManager.IsClient)
                 {
@@ -125,9 +114,11 @@ public class SceneLoaderWrapper : NetworkBehaviour
                 }
 
                 break;
-            case SceneEventType.Synchronize: // Server told client to start synchronizing scenes
+            }
+            
+            // Server told client to start synchronizing scenes
+            case SceneEventType.Synchronize:
             {
-                // todo: this is a workaround that could be removed once MTT-3363 is done
                 // Only executes on client that is not the host
                 if (NetworkManager.IsClient && !NetworkManager.IsHost)
                 {
@@ -136,37 +127,55 @@ public class SceneLoaderWrapper : NetworkBehaviour
                     // that is already loaded.
                     UnloadAdditiveScenes();
                 }
-
                 break;
             }
-            case SceneEventType.SynchronizeComplete: // Client told server that they finished synchronizing
+            
+            // Client told server that they finished synchronizing
+            case SceneEventType.SynchronizeComplete:
+            {
                 // Only executes on server
                 if (NetworkManager.IsServer)
                 {
-                    // Send client RPC to make sure the client stops the loading screen after the server handles what it needs to after the client finished synchronizing, for example character spawning done server side should still be hidden by loading screen.
-                    StopLoadingScreenClientRpc(new ClientRpcParams
-                        { Send = new ClientRpcSendParams { TargetClientIds = new[] { sceneEvent.ClientId } } });
+                    // Send client RPC to make sure the client stops the loading screen after the server handles what it needs to after
+                    // the client finished synchronizing, for example character spawning done server side should still be hidden by loading screen.
+                    StopLoadingScreenClientRpc(new ClientRpcParams { Send = new ClientRpcSendParams { TargetClientIds = new[] { sceneEvent.ClientId } } });
                 }
-
                 break;
+            }
+            
+            case SceneEventType.Unload:
+                break;
+            
+            case SceneEventType.ReSynchronize:
+                break;
+            
+            case SceneEventType.UnloadEventCompleted:
+                break;
+            
+            case SceneEventType.LoadComplete:
+                break;
+            
+            case SceneEventType.UnloadComplete:
+                break;
+                
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 
-    void UnloadAdditiveScenes()
+    private void UnloadAdditiveScenes()
     {
         var activeScene = SceneManager.GetActiveScene();
         for (var i = 0; i < SceneManager.sceneCount; i++)
         {
             var scene = SceneManager.GetSceneAt(i);
             if (scene.isLoaded && scene != activeScene)
-            {
                 SceneManager.UnloadSceneAsync(scene);
-            }
         }
     }
 
     [ClientRpc]
-    void StopLoadingScreenClientRpc(ClientRpcParams clientRpcParams = default)
+    private void StopLoadingScreenClientRpc(ClientRpcParams clientRpcParams = default)
     {
         m_ClientLoadingScreen.StopLoadingScreen();
     }

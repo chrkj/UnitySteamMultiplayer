@@ -57,17 +57,8 @@ public class LobbyManager : NetworkBehaviour
         m_Lobby.SetMemberData("Start", "true");
         
         await Task.Delay(5000);
-
-        //LoadingData.SceneToLoad = "InGameScene";
-        //NetworkManager.SceneManager.LoadScene("LoadingScene", LoadSceneMode.Single);
+        
         SceneLoaderWrapper.Instance.LoadScene("InGameScene", useNetworkSceneManager: true);
-    }
-
-    [ClientRpc]
-    public void DisableReadyButtons_ClientRpc(ClientRpcParams clientRpcParams = default)
-    {
-        Debug.Log("DisableReadyButtons_ClientRpc");
-        ReadyButton.interactable = false;
     }
 
     public void Ready()
@@ -116,24 +107,15 @@ public class LobbyManager : NetworkBehaviour
     private void CheckForEveryoneReady()
     {
         // Only the lobby owner checks if everyone is ready and then sends a message to everyone to start the game
-        if (!m_Gamestarted && m_Lobby.MemberCount > 0)
+        if (m_Gamestarted || m_Lobby.MemberCount <= 0 || !NetworkManager.Singleton.IsHost) return;
+        
+        StartButton.interactable = false;
+        foreach (var lobbyAvatar in m_LobbyAvatars.Values)
         {
-            if (NetworkManager.Singleton.IsHost)
-            {
-                bool everyoneReady = true;
-                StartButton.interactable = false;
-                foreach (var lobbyAvatar in m_LobbyAvatars.Values)
-                {
-                    if (!lobbyAvatar.Ready)
-                    {
-                        everyoneReady = false;
-                        break;
-                    }
-                }
-                if (everyoneReady)
-                    StartButton.interactable = true;
-            }
+            if (lobbyAvatar.Ready) continue;
+            return;
         }
+        StartButton.interactable = true;
     }
 
     private void OnLobbyMemberDataChanged(Lobby lobby, Friend friend)
