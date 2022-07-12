@@ -31,12 +31,10 @@ public class LobbiesListManager : MonoBehaviour
         
         foreach (var lobby in lobbies)
         {
-            var lobbyItem = Instantiate(LobbyDataItemPrefab);
+            var lobbyItem = Instantiate(LobbyDataItemPrefab, LobbyListContent.transform, true);
             var data = lobbyItem.GetComponent<LobbyDataEntry>();
             data.Lobby = lobby;
-            data.LobbyName = lobby.GetData("name");
-            data.SetLobbyData();
-            lobbyItem.transform.SetParent(LobbyListContent.transform);
+            data.LobbyName.text = lobby.GetData("name");
             lobbyItem.transform.localScale = Vector3.one;
             ListOfLobbies.Add(lobbyItem);
         }

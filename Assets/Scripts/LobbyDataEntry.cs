@@ -5,13 +5,7 @@ using UnityEngine.UI;
 public class LobbyDataEntry : MonoBehaviour
 {
     public Lobby Lobby;
-    public string LobbyName;
-    public Text LobbyNameText;
-
-    public void SetLobbyData()
-    {
-        LobbyNameText.text = LobbyName;
-    }
+    public Text LobbyName;
 
     public void JoinLobby()
     {
