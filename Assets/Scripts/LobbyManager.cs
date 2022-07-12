@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Steamworks;
 using Steamworks.Data;
-using Unity.Multiplayer.Samples.Utilities;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Color = UnityEngine.Color;
 
@@ -15,10 +14,12 @@ public class LobbyManager : NetworkBehaviour
     public Transform LayoutLobby;
     public GameObject ChatManagerObj;
     public GameObject LobbyAvatarPrefab;
-    public UnityEngine.UI.Text LobbyName;
-    public UnityEngine.UI.Button ReadyButton;
-    public UnityEngine.UI.Button StartButton;
-    public UnityEngine.UI.Button LeaveButton;
+    
+    public Text LobbyName;
+    public Button ReadyButton;
+    public Button StartButton;
+    public Button LeaveButton;
+    public InputField ChatInputField;
 
     private bool m_Ready;
     private Lobby m_Lobby;
@@ -55,7 +56,8 @@ public class LobbyManager : NetworkBehaviour
         m_Gamestarted = true;
         StartButton.interactable = false;
         m_Lobby.SetMemberData("Start", "true");
-
+        
+        m_Lobby.SendChatString("Game starting...");
         for (var i = 5; i > 0; i--)
         {
             m_Lobby.SendChatString($"{i}...");
@@ -79,6 +81,12 @@ public class LobbyManager : NetworkBehaviour
         SceneManager.LoadScene("MainMenuScene");
     }
 
+    public void SendLobbyMessage()
+    {
+        m_Lobby.SendChatString(ChatInputField.text);
+        ChatInputField.text = "";
+    }
+
     private void RefreshLobby()
     {
         foreach (LobbyAvatar lobbyAvatar in m_LobbyAvatars.Values)
@@ -98,19 +106,14 @@ public class LobbyManager : NetworkBehaviour
     
     private LobbyAvatar InstantiateLobbyAvatar(ulong steamId)
     {
-        var tmp = Instantiate(LobbyAvatarPrefab, LayoutLobby, false).GetComponent<LobbyAvatar>();
+        var tmp = Instantiate(LobbyAvatarPrefab, LayoutLobby.transform, false).GetComponent<LobbyAvatar>();
         tmp.SteamID = steamId;
         tmp.gameObject.name = new Friend(steamId).Name;
-
-        var tc = tmp.transform;
-        tc.SetParent(LayoutLobby.transform);
-        tc.localScale = Vector3.one;
         return tmp;
     }
     
     private void CheckForEveryoneReady()
     {
-        // Only the lobby owner checks if everyone is ready and then sends a message to everyone to start the game
         if (m_Gamestarted || m_Lobby.MemberCount <= 0 || !NetworkManager.Singleton.IsHost) return;
         
         StartButton.interactable = false;
