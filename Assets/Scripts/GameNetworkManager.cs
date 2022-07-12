@@ -9,15 +9,14 @@ using UnityEngine.SceneManagement;
 public class GameNetworkManager : MonoBehaviour
 {
     public static GameNetworkManager Instance { get; private set; }
+    public Lobby? CurrentLobby { get; private set; }
     
     // Random hash to distinguish our lobbies from others with default steam app id (480)
     public const string APP_ID = "b4bcc8776e19"; 
-    public HostGameManager.HostLobbyData LobbyData;
-    public Lobby? CurrentLobby { get; private set; }
 
-    private ulong m_ClientId;
     private PlayerSpawner m_Spawner;
     private FacepunchTransport m_Transport;
+    private HostGameManager.HostLobbyData m_LobbyData;
 
     private void Awake() => Instance = this;
 
@@ -46,13 +45,19 @@ public class GameNetworkManager : MonoBehaviour
 
     public async Task<Lobby?> StartHost(HostGameManager.HostLobbyData data, int lobbySize = 10)
     {
-        LobbyData = data;
+        m_LobbyData = data;
         NetworkManager.Singleton.StartHost();
         CurrentLobby = await SteamMatchmaking.CreateLobbyAsync(lobbySize);
         return CurrentLobby;
     }
+    
+    public void JoinLobby(Lobby lobby)
+    {
+        CurrentLobby = lobby;
+        CurrentLobby?.Join();
+    }
 
-    public void StartClient(SteamId id)
+    private void StartClient(SteamId id)
     {
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnectCallback;
@@ -61,17 +66,6 @@ public class GameNetworkManager : MonoBehaviour
         
         if (NetworkManager.Singleton.StartClient())
             Debug.Log($"Client has joined targetId={id}.", this);
-    }
-
-    public async Task<Lobby[]> RequestLobbyList()
-    {
-        return await SteamMatchmaking.LobbyList.WithKeyValue("AppID", APP_ID).RequestAsync();
-    }
-
-    public void JoinLobby(Lobby lobby)
-    {
-        CurrentLobby = lobby;
-        CurrentLobby?.Join();
     }
 
     private void OnApplicationQuit()
@@ -86,14 +80,12 @@ public class GameNetworkManager : MonoBehaviour
     #region Network Callbacks
     private void OnClientConnectedCallback(ulong clientId)
     {
-        m_ClientId = clientId;
         Debug.Log($"Client connected clientId={clientId}");
     }
 
     private void OnClientDisconnectCallback(ulong clientId)
     {
         Debug.Log($"Client disconnected clientId={clientId}");
-        m_ClientId = 0;
         NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
     }
@@ -110,7 +102,7 @@ public class GameNetworkManager : MonoBehaviour
 
         {   // Set lobby data here
             lobby.SetPublic();
-            lobby.SetData("name", LobbyData.Name);
+            lobby.SetData("name", m_LobbyData.Name);
             lobby.SetData("AppID", APP_ID);
             lobby.SetJoinable(true);
         }
@@ -122,11 +114,13 @@ public class GameNetworkManager : MonoBehaviour
         Debug.Log($"Entered in lobby", this);
         SceneManager.LoadScene("LobbyScene");
         SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
+        
         if (NetworkManager.Singleton.IsHost)
         {
             Debug.Log($"You are the host!", this);
             return;
         }
+        
         StartClient(lobby.Owner.Id);
     }
 
