@@ -8,8 +8,8 @@ using UnityEngine.SceneManagement;
 
 public class GameNetworkManager : MonoBehaviour
 {
+    public Lobby? CurrentLobby;
     public static GameNetworkManager Instance { get; private set; }
-    public Lobby? CurrentLobby { get; private set; }
     
     // Random hash to distinguish our lobbies from others with default steam app id (480)
     public const string APP_ID = "b4bcc8776e19"; 
@@ -43,12 +43,11 @@ public class GameNetworkManager : MonoBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
     }
 
-    public async Task<Lobby?> StartHost(HostGameManager.HostLobbyData data, int lobbySize = 10)
+    public async Task StartHost(HostGameManager.HostLobbyData data, int lobbySize = 10)
     {
         m_LobbyData = data;
         NetworkManager.Singleton.StartHost();
         CurrentLobby = await SteamMatchmaking.CreateLobbyAsync(lobbySize);
-        return CurrentLobby;
     }
     
     public void JoinLobby(Lobby lobby)

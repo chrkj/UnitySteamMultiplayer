@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Color = UnityEngine.Color;
+using Image = UnityEngine.UI.Image;
 
 public class LobbyManager : NetworkBehaviour
 {
@@ -25,8 +26,7 @@ public class LobbyManager : NetworkBehaviour
     private Lobby m_Lobby;
     private bool m_Gamestarted;
     private ChatManager m_ChatManager;
-    
-    private Dictionary<ulong, LobbyAvatar> m_LobbyAvatars = new Dictionary<ulong, LobbyAvatar>();
+    private readonly Dictionary<ulong, LobbyAvatar> m_LobbyAvatars = new Dictionary<ulong, LobbyAvatar>();
 
     private void Start()
     {
@@ -48,6 +48,9 @@ public class LobbyManager : NetworkBehaviour
 
     public override void OnDestroy()
     {
+        SteamMatchmaking.OnChatMessage -= OnChatMessage;
+        SteamMatchmaking.OnLobbyMemberLeave -= OnLobbyMemberLeave;
+        SteamMatchmaking.OnLobbyMemberJoined -= OnLobbyMemberJoined;
         SteamMatchmaking.OnLobbyMemberDataChanged -= OnLobbyMemberDataChanged;
     }
 
@@ -71,13 +74,15 @@ public class LobbyManager : NetworkBehaviour
     {
         m_Ready = !m_Ready;
         m_Lobby.SetMemberData("Ready", m_Ready.ToString());
-        ReadyButton.GetComponent<UnityEngine.UI.Image>().color = m_Ready ? new Color(0, 0.25f, 0) : new Color(0.25f, 0, 0);
-        ReadyButton.GetComponentInChildren<UnityEngine.UI.Text>().text = m_Ready ? "Ready" : "Click to Ready up";
+        ReadyButton.GetComponent<Image>().color = m_Ready ? new Color(0, 0.25f, 0) : new Color(0.25f, 0, 0);
+        ReadyButton.GetComponentInChildren<Text>().text = m_Ready ? "Ready" : "Click to Ready up";
     }
     
     public void Disconnect()
     {
         m_Lobby.Leave();
+        NetworkManager.Singleton.Shutdown();
+        GameNetworkManager.Instance.CurrentLobby = null;
         SceneManager.LoadScene("MainMenuScene");
     }
 

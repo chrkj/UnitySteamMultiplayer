@@ -9,12 +9,13 @@ public class HostGameManager : MonoBehaviour
     public async void HostGame()
     {
         if (GameName.text.Length == 0) return;
-        HostLobbyData data = new HostLobbyData();
-        data.Name = GameName.text;
-        data.Password = GamePassword.text; 
-        var lobby = await GameNetworkManager.Instance.StartHost(data, 10);
-        lobby.Value.SetPublic();
-        lobby.Value.SetJoinable(true);
+        HostLobbyData data = new HostLobbyData
+        {
+            Name = GameName.text,
+            Password = GamePassword.text
+        };
+        await GameNetworkManager.Instance.StartHost(data, 10);
+        
     }
     
     public void GoBackToMainMenu()
