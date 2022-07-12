@@ -14,7 +14,7 @@ public class ChatManager : MonoBehaviour
     {
         var newMessage = new Message();
         var newText = Instantiate(TextObject, ChatPanel.transform);
-        string timeStamp = "[" + System.DateTime.Now.ToString("HH:mm:ss") + "]: ";
+        string timeStamp = $"[{System.DateTime.Now:HH:mm:ss}] ";
         
         newMessage.Text = timeStamp + text;
         newMessage.TextObject = newText.GetComponent<Text>();

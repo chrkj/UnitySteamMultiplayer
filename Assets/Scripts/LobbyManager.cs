@@ -31,6 +31,7 @@ public class LobbyManager : NetworkBehaviour
     {
         m_ChatManager = ChatManagerObj.GetComponent<ChatManager>();
         m_Lobby = GameNetworkManager.Instance.CurrentLobby.Value;
+        SteamMatchmaking.OnChatMessage += OnChatMessage;
         SteamMatchmaking.OnLobbyMemberLeave += OnLobbyMemberLeave;
         SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
         SteamMatchmaking.OnLobbyMemberDataChanged += OnLobbyMemberDataChanged;
@@ -51,12 +52,15 @@ public class LobbyManager : NetworkBehaviour
 
     public async void StartGame()
     {
-        // TODO: Make clientrpc call work
         m_Gamestarted = true;
         StartButton.interactable = false;
         m_Lobby.SetMemberData("Start", "true");
-        
-        await Task.Delay(5000);
+
+        for (var i = 5; i > 0; i--)
+        {
+            m_Lobby.SendChatString($"{i}...");
+            await Task.Delay(1000);
+        }
         
         SceneLoaderWrapper.Instance.LoadScene("InGameScene", useNetworkSceneManager: true);
     }
@@ -125,7 +129,6 @@ public class LobbyManager : NetworkBehaviour
         {
             ReadyButton.interactable = false;
             LeaveButton.interactable = false;
-            Countdown();
         }
         CheckForEveryoneReady();
     }
@@ -142,14 +145,9 @@ public class LobbyManager : NetworkBehaviour
         RefreshLobby();
     }
 
-    private async void Countdown()
+    private void OnChatMessage(Lobby lobby, Friend friend, string message)
     {
-        // TODO: Should sync chat messages
-        for (int i = 5; i > 0; i--)
-        {
-            m_ChatManager.SendMessageToChat($"{i}...");
-            await Task.Delay(1000);
-        }
+        m_ChatManager.SendMessageToChat($"[{friend.Name}] {message}");
     }
-    
+
 }
