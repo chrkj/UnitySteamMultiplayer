@@ -87,7 +87,7 @@ public class LobbyManager : NetworkBehaviour
         m_Lobby.Leave();
         NetworkManager.Singleton.Shutdown();
         GameNetworkManager.Instance.CurrentLobby = null;
-        SceneManager.LoadScene("MainMenuScene");
+        SceneManager.LoadScene("MainMenu");
     }
 
     public void SendLobbyMessage()

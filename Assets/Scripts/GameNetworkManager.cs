@@ -27,7 +27,7 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
         SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
 
-        SceneManager.LoadScene("Menu");
+        SceneManager.LoadScene("MainMenu");
     }
 
     private void OnDestroy()
