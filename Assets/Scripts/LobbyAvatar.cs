@@ -10,16 +10,11 @@ public class LobbyAvatar : Avatar
     
     public void Refresh()
     {
-        if (bool.TryParse(GameNetworkManager.Instance.CurrentLobby.Value.GetMemberData(new Friend(SteamID), "Ready"), out Ready))
-        {
-            if (Ready)
-                ReadyText.text = "Ready";
-            else
-                ReadyText.text = "Not Ready";
-
-            var color = Ready ? Color.green : Color.red;
-            ReadyText.color = color;
-            ImageReadyOutline.color = color;
-        }
+        if (!bool.TryParse(GameNetworkManager.Instance.CurrentLobby.Value.GetMemberData(new Friend(SteamID), "Ready"), out Ready)) return;
+        
+        ReadyText.text = Ready ? "Ready" : "Not Ready";
+        var color = Ready ? Color.green : Color.red;
+        ReadyText.color = color;
+        ImageReadyOutline.color = color;
     }
 }

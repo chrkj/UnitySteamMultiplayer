@@ -4,26 +4,25 @@ using Unity.Netcode;
 using Steamworks;
 using Steamworks.Data;
 using Netcode.Transports.Facepunch;
+using SceneLoading;
 using UnityEngine.SceneManagement;
+using Utility;
 
-public class GameNetworkManager : MonoBehaviour
+public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkManager>
 {
     public Lobby? CurrentLobby;
-    public static GameNetworkManager Instance { get; private set; }
+    public static string APP_ID { get => m_APP_ID; }
     
     // Random hash to distinguish our lobbies from others with default steam app id (480)
-    public const string APP_ID = "b4bcc8776e19"; 
-
+    private const string m_APP_ID = "b4bcc8776e19";
     private PlayerSpawner m_Spawner;
     private FacepunchTransport m_Transport;
     private HostGameManager.HostLobbyData m_LobbyData;
 
-    private void Awake() => Instance = this;
-
     private void Start()
     {
         m_Transport = GetComponent<FacepunchTransport>();
-
+        
         SteamMatchmaking.OnLobbyCreated += OnLobbyCreated;
         SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
         SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
@@ -47,6 +46,7 @@ public class GameNetworkManager : MonoBehaviour
     {
         m_LobbyData = data;
         NetworkManager.Singleton.StartHost();
+        SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
         CurrentLobby = await SteamMatchmaking.CreateLobbyAsync(lobbySize);
     }
     
@@ -112,15 +112,14 @@ public class GameNetworkManager : MonoBehaviour
     {
         Debug.Log($"Entered in lobby", this);
         SceneManager.LoadScene("LobbyScene");
-        SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
         
         if (NetworkManager.Singleton.IsHost)
         {
             Debug.Log($"You are the host!", this);
             return;
         }
-        
         StartClient(lobby.Owner.Id);
+        SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
     }
 
     private void OnGameLobbyJoinRequested(Lobby lobby, SteamId id)

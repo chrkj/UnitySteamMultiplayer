@@ -23,7 +23,6 @@ public class PlayerController : NetworkBehaviour
     private bool m_Active;
     private void Activate() => m_Active = true;
     private void Awake() => Invoke(nameof(Activate), 0.5f);
-    
 
     private void Update()
     {

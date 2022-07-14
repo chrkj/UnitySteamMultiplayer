@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SceneLoading;
 using Steamworks;
 using Steamworks.Data;
 using Unity.Netcode;
@@ -8,6 +9,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Color = UnityEngine.Color;
+using Debug = System.Diagnostics.Debug;
 using Image = UnityEngine.UI.Image;
 
 public class LobbyManager : NetworkBehaviour
@@ -31,7 +33,10 @@ public class LobbyManager : NetworkBehaviour
     private void Start()
     {
         m_ChatManager = ChatManagerObj.GetComponent<ChatManager>();
+        
+        Debug.Assert(GameNetworkManager.Instance.CurrentLobby != null, $"GameNetworkManager.Instance.CurrentLobby is null in {this}");
         m_Lobby = GameNetworkManager.Instance.CurrentLobby.Value;
+        
         SteamMatchmaking.OnChatMessage += OnChatMessage;
         SteamMatchmaking.OnLobbyMemberLeave += OnLobbyMemberLeave;
         SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
@@ -42,7 +47,6 @@ public class LobbyManager : NetworkBehaviour
             StartButton.gameObject.SetActive(true);
             StartButton.interactable = false;
         }
-        
         RefreshLobby();
     }
 
@@ -94,7 +98,7 @@ public class LobbyManager : NetworkBehaviour
 
     private void RefreshLobby()
     {
-        foreach (LobbyAvatar lobbyAvatar in m_LobbyAvatars.Values)
+        foreach (var lobbyAvatar in m_LobbyAvatars.Values)
             Destroy(lobbyAvatar.gameObject);
         m_LobbyAvatars.Clear();
 

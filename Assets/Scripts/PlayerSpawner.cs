@@ -13,7 +13,7 @@ public class PlayerSpawner : NetworkBehaviour
 
     // Server owns this object but client can request a spawn
     [ServerRpc(RequireOwnership = false)]
-    public void SpawnPlayerPrefab_ServerRpc(ulong clientId)
+    private void SpawnPlayerPrefab_ServerRpc(ulong clientId)
     {
         var go = Instantiate(m_PlayerPrefab);
         var no = go.GetComponent<NetworkObject>();

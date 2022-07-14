@@ -1,6 +1,9 @@
 using Unity.Netcode;
 
-public class NetworkTrackerLoadingProgress : NetworkBehaviour
+namespace SceneLoading
 {
-    public NetworkVariable<float> Progress { get; } = new NetworkVariable<float>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public class NetworkTrackerLoadingProgress : NetworkBehaviour
+    {
+        public NetworkVariable<float> Progress = new NetworkVariable<float>(0, readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Owner);
+    }
 }
