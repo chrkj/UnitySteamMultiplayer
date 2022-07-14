@@ -207,6 +207,26 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &517268225 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1577713129582019654, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
+  m_PrefabInstance: {fileID: 1598673396}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &517268230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 517268225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44dd247a00edbfa44b77868d755af6ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  steamAppId: 480
+  targetSteamId: 0
+  userSteamId: 0
 --- !u!114 &549544949 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1409076866629288953, guid: 5e26531030332a64d8abdc7b38e6feaa, type: 3}
@@ -227,7 +247,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1409076866629288952, guid: 5e26531030332a64d8abdc7b38e6feaa, type: 3}
       propertyPath: m_RootOrder
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1409076866629288952, guid: 5e26531030332a64d8abdc7b38e6feaa, type: 3}
       propertyPath: m_LocalPosition.x
@@ -283,7 +303,7 @@ PrefabInstance:
       objectReference: {fileID: 7708704473247919897}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5e26531030332a64d8abdc7b38e6feaa, type: 3}
---- !u!1001 &1577713129266043414
+--- !u!1001 &1598673396
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -292,7 +312,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1577713129582019650, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1577713129582019650, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
       propertyPath: m_LocalPosition.x
@@ -335,20 +355,16 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
-      propertyPath: NetworkConfig.ForceSamePrefabs
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
-      propertyPath: NetworkConfig.LoadSceneTimeOut
-      value: 20
-      objectReference: {fileID: 0}
-    - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
-      propertyPath: NetworkConfig.ConnectionApproval
+      propertyPath: LogLevel
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
-      propertyPath: NetworkConfig.ClientConnectionBufferTimeout
-      value: 1
+      propertyPath: NetworkConfig.NetworkTransport
+      value: 
+      objectReference: {fileID: 517268230}
+    - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
+      propertyPath: NetworkConfig.ConnectionApproval
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1577713129582019654, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
       propertyPath: m_Name
@@ -393,7 +409,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4058245448867751559, guid: 531ba92be2e56164a87ab07cd2e63e1c, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4058245448867751559, guid: 531ba92be2e56164a87ab07cd2e63e1c, type: 3}
       propertyPath: m_AnchorMax.x
@@ -473,11 +489,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4058245448867751611, guid: 531ba92be2e56164a87ab07cd2e63e1c, type: 3}
       propertyPath: m_FadeOutDuration
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 4058245448867751611, guid: 531ba92be2e56164a87ab07cd2e63e1c, type: 3}
       propertyPath: m_DelayBeforeFadeOut
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 4058245448867751611, guid: 531ba92be2e56164a87ab07cd2e63e1c, type: 3}
       propertyPath: m_LoadingProgressManager

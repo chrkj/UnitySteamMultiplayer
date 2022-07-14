@@ -716,6 +716,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2acb8642f7b49e418f51d3fd5006518, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_PersistentPlayerRuntimeCollection: {fileID: 11400000, guid: 10f05c671b4110742820101ba35f06b1, type: 2}
   LayoutLobby: {fileID: 8195174393591195263}
   ChatManagerObj: {fileID: 3035816747109361038}
   LobbyAvatarPrefab: {fileID: 2594191123025693136, guid: a2ddc9d12f389c641a6d355c891336cc, type: 3}
