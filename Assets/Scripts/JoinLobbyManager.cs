@@ -1,20 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Steamworks;
-using UnityEngine.SceneManagement;
+using Utility;
 
-public class LobbiesListManager : MonoBehaviour
+public class JoinLobbyManager : SingletonMono<JoinLobbyManager>
 {
     public GameObject LobbyListContent;
     public GameObject LobbyDataItemPrefab;
     public List<GameObject> ListOfLobbies = new List<GameObject>();
-
-    private void Start()
-    {
-        RefreshLobbies();
-    }
-    
-    public void GoBackToMainMenu() => SceneManager.LoadScene("MainMenuScene");
 
     public async void RefreshLobbies()
     {

@@ -17,7 +17,7 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
     private const string m_APP_ID = "b4bcc8776e19";
     private PlayerSpawner m_Spawner;
     private FacepunchTransport m_Transport;
-    private HostGameManager.HostLobbyData m_LobbyData;
+    private HostLobbyManager.HostLobbyData m_LobbyData;
 
     private void Start()
     {
@@ -27,7 +27,7 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
         SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
 
-        SceneManager.LoadScene("MainMenuScene");
+        SceneManager.LoadScene("Menu");
     }
 
     private void OnDestroy()
@@ -42,7 +42,7 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
     }
 
-    public async Task StartHost(HostGameManager.HostLobbyData data, int lobbySize = 10)
+    public async Task StartHost(HostLobbyManager.HostLobbyData data, int lobbySize = 10)
     {
         m_LobbyData = data;
         NetworkManager.Singleton.StartHost();
@@ -63,6 +63,7 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
 
         m_Transport.targetSteamId = id;
         
+        SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
         if (NetworkManager.Singleton.StartClient())
             Debug.Log($"Client has joined targetId={id}.", this);
     }
@@ -111,7 +112,7 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
     private void OnLobbyEntered(Lobby lobby)
     {
         Debug.Log($"Entered in lobby", this);
-        SceneManager.LoadScene("LobbyScene");
+        SceneManager.LoadScene("Lobby");
         
         if (NetworkManager.Singleton.IsHost)
         {
@@ -119,7 +120,6 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
             return;
         }
         StartClient(lobby.Owner.Id);
-        SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
     }
 
     private void OnGameLobbyJoinRequested(Lobby lobby, SteamId id)

@@ -1,12 +1,11 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-public class HostGameManager : MonoBehaviour
+public class HostLobbyManager : MonoBehaviour
 {
     public UnityEngine.UI.InputField GameName;
     public UnityEngine.UI.InputField GamePassword;
 
-    public async void HostGame()
+    public async void HostLobby()
     {
         if (GameName.text.Length == 0) return;
         HostLobbyData data = new HostLobbyData
@@ -15,14 +14,8 @@ public class HostGameManager : MonoBehaviour
             Password = GamePassword.text
         };
         await GameNetworkManager.Instance.StartHost(data, 10);
-        
     }
     
-    public void GoBackToMainMenu()
-    {
-        SceneManager.LoadScene("MainMenuScene");
-    }
-
     public class HostLobbyData
     {
         public string Name;
