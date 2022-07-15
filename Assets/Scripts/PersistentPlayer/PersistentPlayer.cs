@@ -25,7 +25,7 @@ public class PersistentPlayer : NetworkBehaviour
     public override void OnDestroy()
     {
         base.OnDestroy();
-        
+        RemovePersistentPlayer();
     }
 
     public override void OnNetworkDespawn()
@@ -33,7 +33,7 @@ public class PersistentPlayer : NetworkBehaviour
         
     }
 
-    void RemovePersistentPlayer()
+    private void RemovePersistentPlayer()
     {
         m_PersistentPlayerRuntimeCollection.Remove(this);
         
