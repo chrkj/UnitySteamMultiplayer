@@ -9,7 +9,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Color = UnityEngine.Color;
-using Debug = System.Diagnostics.Debug;
 using Image = UnityEngine.UI.Image;
 
 public class LobbyManager : NetworkBehaviour
@@ -30,14 +29,11 @@ public class LobbyManager : NetworkBehaviour
     private ChatManager m_ChatManager;
     private readonly Dictionary<ulong, LobbyAvatar> m_LobbyAvatars = new Dictionary<ulong, LobbyAvatar>();
     
-    [SerializeField]
-    PersistentPlayerRuntimeCollection m_PersistentPlayerRuntimeCollection;
-
     private void Start()
     {
         m_ChatManager = ChatManagerObj.GetComponent<ChatManager>();
         
-        Debug.Assert(GameNetworkManager.Instance.CurrentLobby != null, $"GameNetworkManager.Instance.CurrentLobby is null in {this}");
+        System.Diagnostics.Debug.Assert(GameNetworkManager.Instance.CurrentLobby != null, $"GameNetworkManager.Instance.CurrentLobby is null in {this}");
         m_Lobby = GameNetworkManager.Instance.CurrentLobby.Value;
         
         SteamMatchmaking.OnChatMessage += OnChatMessage;
@@ -66,6 +62,7 @@ public class LobbyManager : NetworkBehaviour
         m_Gamestarted = true;
         StartButton.interactable = false;
         m_Lobby.SetMemberData("Start", "true");
+        SessionManager<SessionPlayerData>.Instance.OnSessionStarted();
         
         m_Lobby.SendChatString("Game starting...");
         for (var i = 5; i > 0; i--)

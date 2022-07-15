@@ -8,23 +8,12 @@ public interface ISessionPlayerData
     void Reinitialize();
 }
 
-/// <summary>
-/// This class uses a unique player ID to bind a player to a session. Once that player connects to a host, the host
-/// associates the current ClientID to the player's unique ID. If the player disconnects and reconnects to the same
-/// host, the session is preserved.
-/// </summary>
-/// <remarks>
-/// Using a client-generated player ID and sending it directly could be problematic, as a malicious user could
-/// intercept it and reuse it to impersonate the original user. We are currently investigating this to offer a
-/// solution that handles security better.
-/// </remarks>
-/// <typeparam name="T"></typeparam>
 public class SessionManager<T> where T : struct, ISessionPlayerData
 {
     SessionManager()
     {
-        m_ClientData = new Dictionary<string, T>();
-        m_ClientIDToSteamId = new Dictionary<ulong, string>();
+        m_ClientData = new Dictionary<ulong, T>();
+        m_ClientIDToSteamId = new Dictionary<ulong, ulong>();
     }
 
     public static SessionManager<T> Instance => s_Instance ??= new SessionManager<T>();
@@ -32,14 +21,14 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
     static SessionManager<T> s_Instance;
 
     /// <summary>
-    /// Maps a given client player id to the data for a given client player.
+    /// Maps a given client steam id to the data for a given client player.
     /// </summary>
-    Dictionary<string, T> m_ClientData;
+    Dictionary<ulong, T> m_ClientData;
 
     /// <summary>
-    /// Map to allow us to cheaply map from player id to player data.
+    /// Map to allow us to cheaply map from clientId to steamId.
     /// </summary>
-    Dictionary<ulong, string> m_ClientIDToSteamId;
+    Dictionary<ulong, ulong> m_ClientIDToSteamId;
 
     bool m_HasSessionStarted;
 
@@ -53,7 +42,7 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
             // Mark client as disconnected, but keep their data so they can reconnect.
             if (m_ClientIDToSteamId.TryGetValue(clientId, out var steamId))
             {
-                if (GetPlayerData(steamId)?.ClientID == clientId)
+                if (GetPlayerDataFromClientId(steamId)?.ClientID == clientId)
                 {
                     var clientData = m_ClientData[steamId];
                     clientData.IsConnected = false;
@@ -67,7 +56,7 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
             if (m_ClientIDToSteamId.TryGetValue(clientId, out var steamId))
             {
                 m_ClientIDToSteamId.Remove(clientId);
-                if (GetPlayerData(steamId)?.ClientID == clientId)
+                if (GetPlayerDataFromClientId(steamId)?.ClientID == clientId)
                 {
                     m_ClientData.Remove(steamId);
                 }
@@ -80,7 +69,7 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
     /// </summary>
     /// <param name="steamId">This is the steamId that is unique to this client and persists across multiple logins from the same client</param>
     /// <returns>True if a player with this ID is already connected.</returns>
-    public bool IsDuplicateConnection(string steamId)
+    public bool IsDuplicateConnection(ulong steamId)
     {
         return m_ClientData.ContainsKey(steamId) && m_ClientData[steamId].IsConnected;
     }
@@ -91,7 +80,7 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
     /// <param name="clientId">This is the clientId that Netcode assigned us on login. It does not persist across multiple logins from the same client. </param>
     /// <param name="steamId">This is the steamId that is unique to this client and persists across multiple logins from the same client</param>
     /// <param name="sessionPlayerData">The player's initial data</param>
-    public void SetupConnectingPlayerSessionData(ulong clientId, string steamId, T sessionPlayerData)
+    public void SetupConnectingPlayerSessionData(ulong clientId, ulong steamId, T sessionPlayerData)
     {
         var isReconnecting = false;
 
@@ -99,7 +88,7 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
         if (IsDuplicateConnection(steamId))
         {
             Debug.LogError(
-                $"Player ID {steamId} already exists. This is a duplicate connection. Rejecting this session data.");
+                $"Steam ID {steamId} already exists. This is a duplicate connection. Rejecting this session data.");
             return;
         }
 
@@ -108,7 +97,7 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
         {
             if (!m_ClientData[steamId].IsConnected)
             {
-                // If this connecting client has the same player Id as a disconnected client, this is a reconnection.
+                // If this connecting client has the same steam Id as a disconnected client, this is a reconnection.
                 isReconnecting = true;
             }
         }
@@ -131,16 +120,14 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
     ///
     /// </summary>
     /// <param name="clientId"> id of the client whose data is requested</param>
-    /// <returns>The Player ID matching the given client ID</returns>
-    public string GetSteamId(ulong clientId)
+    /// <returns>The Steam ID matching the given client ID (0 if none matches)</returns>
+    public ulong GetSteamId(ulong clientId)
     {
-        if (m_ClientIDToSteamId.TryGetValue(clientId, out string steamId))
-        {
+        if (m_ClientIDToSteamId.TryGetValue(clientId, out ulong steamId))
             return steamId;
-        }
 
-        Debug.Log($"No client player ID found mapped to the given client ID: {clientId}");
-        return null;
+        Debug.Log($"No client steam ID found mapped to the given client ID: {clientId}");
+        return 0;
     }
 
     /// <summary>
@@ -148,16 +135,14 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
     /// </summary>
     /// <param name="clientId"> id of the client whose data is requested</param>
     /// <returns>Player data struct matching the given ID</returns>
-    public T? GetPlayerData(ulong clientId)
+    public T? GetPlayerDataFromClientId(ulong clientId)
     {
         //First see if we have a steamId matching the clientID given.
         var steamId = GetSteamId(clientId);
-        if (steamId != null)
-        {
-            return GetPlayerData(steamId);
-        }
+        if (steamId != 0)
+            return GetPlayerDataFromSteamId(steamId);
 
-        Debug.Log($"No client player ID found mapped to the given client ID: {clientId}");
+        Debug.Log($"No client steam ID found mapped to the given client ID: {clientId}");
         return null;
     }
 
@@ -166,14 +151,14 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
     /// </summary>
     /// <param name="steamId"> Steam ID of the client whose data is requested</param>
     /// <returns>Player data struct matching the given ID</returns>
-    public T? GetPlayerData(string steamId)
+    public T? GetPlayerDataFromSteamId(ulong steamId)
     {
         if (m_ClientData.TryGetValue(steamId, out T data))
         {
             return data;
         }
 
-        Debug.Log($"No PlayerData of matching player ID found: {steamId}");
+        Debug.Log($"No PlayerData of matching steam ID found: {steamId}");
         return null;
     }
 
@@ -184,14 +169,10 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
     /// <param name="sessionPlayerData"> new data to overwrite the old </param>
     public void SetPlayerData(ulong clientId, T sessionPlayerData)
     {
-        if (m_ClientIDToSteamId.TryGetValue(clientId, out string steamId))
-        {
+        if (m_ClientIDToSteamId.TryGetValue(clientId, out ulong steamId))
             m_ClientData[steamId] = sessionPlayerData;
-        }
         else
-        {
-            Debug.LogError($"No client player ID found mapped to the given client ID: {clientId}");
-        }
+            Debug.LogError($"No client steam ID found mapped to the given client ID: {clientId}");
     }
 
     /// <summary>
@@ -226,7 +207,7 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
     {
         foreach (var id in m_ClientIDToSteamId.Keys)
         {
-            string steamId = m_ClientIDToSteamId[id];
+            ulong steamId = m_ClientIDToSteamId[id];
             T sessionPlayerData = m_ClientData[steamId];
             sessionPlayerData.Reinitialize();
             m_ClientData[steamId] = sessionPlayerData;
@@ -238,21 +219,16 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
         List<ulong> idsToClear = new List<ulong>();
         foreach (var id in m_ClientIDToSteamId.Keys)
         {
-            var data = GetPlayerData(id);
+            var data = GetPlayerDataFromClientId(id);
             if (data is { IsConnected: false })
-            {
                 idsToClear.Add(id);
-            }
         }
 
         foreach (var id in idsToClear)
         {
-            string steamId = m_ClientIDToSteamId[id];
-            if (GetPlayerData(steamId)?.ClientID == id)
-            {
+            ulong steamId = m_ClientIDToSteamId[id];
+            if (GetPlayerDataFromClientId(steamId)?.ClientID == id)
                 m_ClientData.Remove(steamId);
-            }
-
             m_ClientIDToSteamId.Remove(id);
         }
     }

@@ -34,6 +34,13 @@ namespace SceneLoading
             if (IsNetworkSceneManagementEnabled)
                 NetworkManager.SceneManager.OnSceneEvent += OnSceneEvent;
         }
+
+        public void RemoveSceneEventCallback()
+        {
+            if (IsNetworkSceneManagementEnabled)
+                NetworkManager.SceneManager.OnSceneEvent -= OnSceneEvent;
+        }
+        
         
         public void LoadScene(string sceneName, bool useNetworkSceneManager, LoadSceneMode loadSceneMode = LoadSceneMode.Single)
         {
