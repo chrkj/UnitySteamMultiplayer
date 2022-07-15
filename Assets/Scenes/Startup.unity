@@ -359,6 +359,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
+      propertyPath: NetworkConfig.TickRate
+      value: 300
+      objectReference: {fileID: 0}
+    - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
       propertyPath: NetworkConfig.NetworkTransport
       value: 
       objectReference: {fileID: 517268230}
@@ -368,12 +372,20 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
       propertyPath: NetworkConfig.NetworkPrefabs.Array.size
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
       propertyPath: NetworkConfig.NetworkPrefabs.Array.data[0].Prefab
       value: 
       objectReference: {fileID: 3344348612976943864, guid: 84df191f98c97ec41be1b32851e58916, type: 3}
+    - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
+      propertyPath: NetworkConfig.NetworkPrefabs.Array.data[1].Prefab
+      value: 
+      objectReference: {fileID: 3106828016798330210, guid: 1c8cc89efa665be469d69faf863ab505, type: 3}
+    - target: {fileID: 1577713129582019653, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
+      propertyPath: NetworkConfig.NetworkPrefabs.Array.data[2].Prefab
+      value: 
+      objectReference: {fileID: 1409076866629288957, guid: 5e26531030332a64d8abdc7b38e6feaa, type: 3}
     - target: {fileID: 1577713129582019654, guid: 319341b8a522e7c4bab335726f77dd9c, type: 3}
       propertyPath: m_Name
       value: NetworkManager

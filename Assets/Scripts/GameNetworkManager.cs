@@ -46,8 +46,8 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
     {
         m_LobbyData = data;
         NetworkManager.Singleton.StartHost();
-        SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
         CurrentLobby = await SteamMatchmaking.CreateLobbyAsync(lobbySize);
+        SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
     }
     
     public void JoinLobby(Lobby lobby)
@@ -63,9 +63,9 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
 
         m_Transport.targetSteamId = id;
         
-        SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
         if (NetworkManager.Singleton.StartClient())
             Debug.Log($"Client has joined targetId={id}.", this);
+        SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
     }
 
     private void OnApplicationQuit()
