@@ -1,10 +1,11 @@
-using Steamworks;
-using Unity.Netcode;
+using UnityEngine;
 
 namespace SceneLoading
 {
     public class ClientGameLoadingScreen : ClientLoadingScreen
     {
+        [SerializeField]
+        private PersistentPlayerRuntimeCollection m_PersistentPlayerRuntimeCollection;
         protected override void AddOtherPlayerProgressBar(ulong clientId, NetworkTrackerLoadingProgress progressTracker)
         {
             base.AddOtherPlayerProgressBar(clientId, progressTracker);
@@ -19,7 +20,14 @@ namespace SceneLoading
 
         private string GetPlayerName(ulong clientId)
         {
-            return "PlayerX";
+            foreach (var player in m_PersistentPlayerRuntimeCollection.Items)
+            {
+                if (clientId == player.OwnerClientId)
+                {
+                    return player.NetworkNameState.Name.Value;
+                }
+            }
+            return "Unknown";
         }
     
     }

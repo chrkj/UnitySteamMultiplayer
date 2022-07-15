@@ -65,7 +65,8 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnectCallback;
 
         m_Transport.targetSteamId = id;
-        
+
+        ApproveClient();
         if (NetworkManager.Singleton.StartClient())
             Debug.Log($"Client has joined targetId={id}.", this);
         SceneLoaderWrapper.Instance.AddOnSceneEventCallback();

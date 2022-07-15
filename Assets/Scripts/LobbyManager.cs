@@ -29,6 +29,9 @@ public class LobbyManager : NetworkBehaviour
     private bool m_Gamestarted;
     private ChatManager m_ChatManager;
     private readonly Dictionary<ulong, LobbyAvatar> m_LobbyAvatars = new Dictionary<ulong, LobbyAvatar>();
+    
+    [SerializeField]
+    PersistentPlayerRuntimeCollection m_PersistentPlayerRuntimeCollection;
 
     private void Start()
     {
