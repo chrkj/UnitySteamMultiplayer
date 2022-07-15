@@ -44,6 +44,11 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
     }
 
+    public void UnsubscribeApproval()
+    {
+        NetworkManager.Singleton.ConnectionApprovalCallback -= ApprovalCheck;
+    }
+
     public async Task StartHost(HostLobbyManager.HostLobbyData data, int lobbySize = 10)
     {
         NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
