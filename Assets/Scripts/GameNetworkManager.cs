@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using UnityEngine;
 using Unity.Netcode;
@@ -38,6 +39,7 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         
         if (NetworkManager.Singleton == null) return;
         
+        NetworkManager.Singleton.ConnectionApprovalCallback -= ApprovalCheck; // Should unsubscribe when lobby is destroyed?
         NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
     }
@@ -45,11 +47,12 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
     public async Task StartHost(HostLobbyManager.HostLobbyData data, int lobbySize = 10)
     {
         m_LobbyData = data;
+        NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
         NetworkManager.Singleton.StartHost();
         CurrentLobby = await SteamMatchmaking.CreateLobbyAsync(lobbySize);
         SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
     }
-    
+
     public void JoinLobby(Lobby lobby)
     {
         CurrentLobby = lobby;
@@ -66,6 +69,19 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         if (NetworkManager.Singleton.StartClient())
             Debug.Log($"Client has joined targetId={id}.", this);
         SceneLoaderWrapper.Instance.AddOnSceneEventCallback();
+    }
+
+    private void ApproveClient()
+    {
+        // TODO: Future password input should be included in the payload
+        var payload = JsonUtility.ToJson(new ConnectionPayload()
+        {
+            steamId = SteamClient.SteamId.ToString(),
+            playerName = SteamClient.Name,
+        });
+
+        var payloadBytes = System.Text.Encoding.UTF8.GetBytes(payload);
+        NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
     }
 
     private void OnApplicationQuit()
@@ -88,6 +104,53 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         Debug.Log($"Client disconnected clientId={clientId}");
         NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
+    }
+    
+    private void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+    {
+        // The client identifier to be authenticated
+        var clientId = request.ClientNetworkId;
+
+        // Additional connection data defined by user code
+        var connectionData = request.Payload;
+
+        // The prefab hash value of the NetworkPrefab, if null the default NetworkManager player prefab is used
+        response.PlayerPrefabHash = null;
+
+        // Position to spawn the player object (if null it uses default of Vector3.zero)
+        response.Position = Vector3.zero;
+
+        // Rotation to spawn the player object (if null it uses the default of Quaternion.identity)
+        response.Rotation = Quaternion.identity;
+
+        // Approval check happens for Host too, but obviously we want it to be approved
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            // TODO: currentHitPoints Hardcoded atm
+            SessionManager<SessionPlayerData>.Instance.SetupConnectingPlayerSessionData(clientId, SteamClient.SteamId.ToString(),
+                new SessionPlayerData(clientId, SteamClient.Name, 100, true));
+
+            // Your approval logic determines the following values
+            response.Approved = true;
+            response.CreatePlayerObject = true;
+        }
+        else
+        {
+            // TODO: currentHitPoints Hardcoded atm
+            var payload = System.Text.Encoding.UTF8.GetString(connectionData);
+            var connectionPayload = JsonUtility.FromJson<ConnectionPayload>(payload); // https://docs.unity3d.com/2020.2/Documentation/Manual/JSONSerialization.html
+            SessionManager<SessionPlayerData>.Instance.SetupConnectingPlayerSessionData(clientId, connectionPayload.steamId,
+                new SessionPlayerData(clientId, connectionPayload.playerName, 0, true));
+
+            response.Approved = true;
+            response.CreatePlayerObject = true;
+            response.Position = Vector3.zero;
+            response.Rotation = Quaternion.identity;
+        }
+        
+        // If additional approval steps are needed, set this to true until the additional steps are complete
+        // once it transitions from true to false the connection approval response will be processed.
+        response.Pending = false;
     }
     #endregion
 
@@ -128,4 +191,11 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         CurrentLobby?.Join();
     }
     #endregion
+}
+
+[Serializable]
+public class ConnectionPayload
+{
+    public string steamId;
+    public string playerName;
 }

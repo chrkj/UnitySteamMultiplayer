@@ -1,3 +1,6 @@
+using Steamworks;
+using Unity.Netcode;
+
 namespace SceneLoading
 {
     public class ClientGameLoadingScreen : ClientLoadingScreen
