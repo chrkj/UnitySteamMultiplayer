@@ -44,7 +44,7 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
     }
 
-    public void UnsubscribeApproval()
+    public void UnsubscribeConnectionApprovalCallback()
     {
         NetworkManager.Singleton.ConnectionApprovalCallback -= ApprovalCheck;
     }
@@ -107,14 +107,12 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
     private void OnClientDisconnectCallback(ulong clientId)
     {
         Debug.Log($"Client disconnected clientId={clientId}");
-        if (clientId == NetworkManager.Singleton.LocalClientId)
+        SessionManager<SessionPlayerData>.Instance.DisconnectClient(clientId);
+
+        if (clientId == 0)
         {
-            CurrentLobby = null;
-            SessionManager<SessionPlayerData>.Instance.OnServerEnded();
-        }
-        else
-        {
-            SessionManager<SessionPlayerData>.Instance.DisconnectClient(clientId);
+            Debug.Log("Host left");
+            SceneManager.LoadScene("MainMenu");
         }
     }
 
