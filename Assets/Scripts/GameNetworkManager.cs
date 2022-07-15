@@ -103,14 +103,18 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             CurrentLobby = null;
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
-            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
             SessionManager<SessionPlayerData>.Instance.OnServerEnded();
         }
         else
         {
             SessionManager<SessionPlayerData>.Instance.DisconnectClient(clientId);
         }
+    }
+
+    public void UnsubscribeConnectionCallbacks()
+    {
+        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnectedCallback;
+        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectCallback;
     }
     
     private void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)

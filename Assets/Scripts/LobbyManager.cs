@@ -84,6 +84,7 @@ public class LobbyManager : NetworkBehaviour
     
     public void Disconnect()
     {
+        GameNetworkManager.Instance.UnsubscribeConnectionCallbacks();
         m_Lobby.Leave();
         NetworkManager.Singleton.Shutdown();
         GameNetworkManager.Instance.CurrentLobby = null;

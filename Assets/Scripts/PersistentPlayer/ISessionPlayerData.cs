@@ -42,7 +42,7 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
             // Mark client as disconnected, but keep their data so they can reconnect.
             if (m_ClientIDToSteamId.TryGetValue(clientId, out var steamId))
             {
-                if (GetPlayerDataFromClientId(steamId)?.ClientID == clientId)
+                if (GetPlayerDataFromSteamId(steamId)?.ClientID == clientId)
                 {
                     var clientData = m_ClientData[steamId];
                     clientData.IsConnected = false;
@@ -56,10 +56,8 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
             if (m_ClientIDToSteamId.TryGetValue(clientId, out var steamId))
             {
                 m_ClientIDToSteamId.Remove(clientId);
-                if (GetPlayerDataFromClientId(steamId)?.ClientID == clientId)
-                {
+                if (GetPlayerDataFromSteamId(steamId)?.ClientID == clientId)
                     m_ClientData.Remove(steamId);
-                }
             }
         }
     }
@@ -154,9 +152,7 @@ public class SessionManager<T> where T : struct, ISessionPlayerData
     public T? GetPlayerDataFromSteamId(ulong steamId)
     {
         if (m_ClientData.TryGetValue(steamId, out T data))
-        {
             return data;
-        }
 
         Debug.Log($"No PlayerData of matching steam ID found: {steamId}");
         return null;
