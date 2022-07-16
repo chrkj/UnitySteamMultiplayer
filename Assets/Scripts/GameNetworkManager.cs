@@ -12,6 +12,7 @@ using Utility;
 public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkManager>
 {
     public Lobby? CurrentLobby;
+    public bool HostDisconnected;
     public static string APP_ID { get => m_APP_ID; }
     
     // Random hash to distinguish our lobbies from others with default steam app id (480)

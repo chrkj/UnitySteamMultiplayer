@@ -1,10 +1,19 @@
+using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
     public GameObject MenuCanvas;
     public GameObject JoinLobbyCanvas;
     public GameObject HostLobbyCanvas;
+    public GameObject HostDisconnectedPopup;
+
+    private void Start()
+    {
+        if (GameNetworkManager.Instance.HostDisconnected)
+            HostDisconnectedPopup.SetActive(true);
+    }
 
     public void OnHostSelected()
     {
@@ -24,6 +33,12 @@ public class MenuManager : MonoBehaviour
         MenuCanvas.SetActive(true);
         JoinLobbyCanvas.SetActive(false);
         HostLobbyCanvas.SetActive(false);
+    }
+
+    public void HostDisconnectedButton()
+    {
+        GameNetworkManager.Instance.HostDisconnected = false;
+        HostDisconnectedPopup.SetActive(false);
     }
 
 }
