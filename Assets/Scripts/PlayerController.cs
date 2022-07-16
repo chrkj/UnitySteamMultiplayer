@@ -1,10 +1,13 @@
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using Cinemachine;
 using Unity.Netcode;
 
 public class PlayerController : NetworkBehaviour
 {
+    public GameObject VirtualCameraPrefab;
+    
     public FrameInput Input { get; private set; }
     public Vector3 Velocity { get; private set; }
     public Vector3 RawMovement { get; private set; }
@@ -23,6 +26,15 @@ public class PlayerController : NetworkBehaviour
     private bool m_Active;
     private void Activate() => m_Active = true;
     private void Awake() => Invoke(nameof(Activate), 0.5f);
+    
+    private void Start()
+    {
+        if (OwnerClientId != NetworkManager.Singleton.LocalClientId) return;
+
+        var virtualCameraObj = Instantiate(VirtualCameraPrefab);
+        var virtualCamera = virtualCameraObj.GetComponent<CinemachineVirtualCamera>();
+        virtualCamera.Follow = transform;
+    }
 
     private void Update()
     {

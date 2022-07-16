@@ -48,6 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbfb23717f7dee14688bccda60b77b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  VirtualCameraPrefab: {fileID: 679716854874434011, guid: 3e108a8ccb17dea42b07c0e6dd0c31a8, type: 3}
   m_DetectorCount: 3
   m_GroundLayer:
     serializedVersion: 2
