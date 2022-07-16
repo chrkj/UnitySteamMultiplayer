@@ -112,6 +112,8 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         if (clientId == 0)
         {
             Debug.Log("Host left");
+            HostDisconnected = true;
+            CurrentLobby.Value.Leave();
             SceneManager.LoadScene("MainMenu");
         }
     }
