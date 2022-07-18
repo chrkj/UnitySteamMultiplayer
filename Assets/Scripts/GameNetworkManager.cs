@@ -11,6 +11,13 @@ using Utility;
 
 public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkManager>
 {
+    [Serializable]
+    public class ConnectionPayload
+    {
+        public string steamId;
+        public string playerName;
+    }
+    
     public Lobby? CurrentLobby;
     public bool HostDisconnected;
     public static string APP_ID { get => m_APP_ID; }
@@ -108,13 +115,13 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
     private void OnClientDisconnectCallback(ulong clientId)
     {
         Debug.Log($"Client disconnected clientId={clientId}");
-        SessionManager<SessionPlayerData>.Instance.DisconnectClient(clientId);
+        SessionManager.Instance.DisconnectClient(clientId);
 
         if (clientId == 0)
         {
             Debug.Log("Host left");
             HostDisconnected = true;
-            CurrentLobby.Value.Leave();
+            CurrentLobby?.Leave();
             SceneManager.LoadScene("MainMenu");
         }
     }
@@ -133,7 +140,7 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         // Approval check happens for Host too, but obviously we want it to be approved
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
-            SessionManager<SessionPlayerData>.Instance.SetupConnectingPlayerSessionData(clientId, SteamClient.SteamId, 
+            SessionManager.Instance.SetupConnectingPlayerSessionData(clientId, SteamClient.SteamId, 
                 new SessionPlayerData(clientId, SteamClient.Name, true));
 
             // Your approval logic determines the following values
@@ -144,7 +151,7 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         {
             var payload = System.Text.Encoding.UTF8.GetString(connectionData);
             var connectionPayload = JsonUtility.FromJson<ConnectionPayload>(payload);
-            SessionManager<SessionPlayerData>.Instance.SetupConnectingPlayerSessionData(clientId, ulong.Parse(connectionPayload.steamId), 
+            SessionManager.Instance.SetupConnectingPlayerSessionData(clientId, ulong.Parse(connectionPayload.steamId), 
                 new SessionPlayerData(clientId, connectionPayload.playerName, true));
 
             response.Approved = true;
@@ -199,11 +206,4 @@ public class GameNetworkManager : PersistentSingletonMonoBehaviour<GameNetworkMa
         CurrentLobby?.Join();
     }
     #endregion
-}
-
-[Serializable]
-public class ConnectionPayload
-{
-    public string steamId;
-    public string playerName;
 }

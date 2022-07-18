@@ -15,7 +15,7 @@ public class PersistentPlayer : NetworkBehaviour
         m_PersistentPlayerRuntimeCollection.Add(this);
         if (IsServer)
         {
-            var sessionPlayerData = SessionManager<SessionPlayerData>.Instance.GetPlayerDataFromClientId(OwnerClientId);
+            var sessionPlayerData = SessionManager.Instance.GetPlayerDataFromClientId(OwnerClientId);
             if (sessionPlayerData.HasValue)
                 m_NetworkNameState.Name.Value = sessionPlayerData.Value.PlayerName;
         }
@@ -30,7 +30,7 @@ public class PersistentPlayer : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        
+        RemovePersistentPlayer();
     }
 
     private void RemovePersistentPlayer()
@@ -38,11 +38,11 @@ public class PersistentPlayer : NetworkBehaviour
         m_PersistentPlayerRuntimeCollection.Remove(this);
         
         if (!IsServer) return;
-        var sessionPlayerData = SessionManager<SessionPlayerData>.Instance.GetPlayerDataFromClientId(OwnerClientId);
+        var sessionPlayerData = SessionManager.Instance.GetPlayerDataFromClientId(OwnerClientId);
         
         if (!sessionPlayerData.HasValue) return;
         var playerData = sessionPlayerData.Value;
         playerData.PlayerName = m_NetworkNameState.Name.Value;
-        SessionManager<SessionPlayerData>.Instance.SetPlayerData(OwnerClientId, playerData);
+        SessionManager.Instance.SetPlayerData(OwnerClientId, playerData);
     }
 }

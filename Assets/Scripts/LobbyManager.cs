@@ -62,7 +62,7 @@ public class LobbyManager : NetworkBehaviour
         m_Gamestarted = true;
         StartButton.interactable = false;
         m_Lobby.SetMemberData("Start", "true");
-        SessionManager<SessionPlayerData>.Instance.OnSessionStarted();
+        SessionManager.Instance.OnSessionStarted();
         
         m_Lobby.SendChatString("Game starting...");
         for (var i = 5; i > 0; i--)
@@ -87,7 +87,7 @@ public class LobbyManager : NetworkBehaviour
         if (NetworkManager.IsHost)
         {
             GameNetworkManager.Instance.UnsubscribeConnectionApprovalCallback();
-            SessionManager<SessionPlayerData>.Instance.OnServerEnded();
+            SessionManager.Instance.OnServerEnded();
         }
         
         GameNetworkManager.Instance.UnsubscribeConnectionCallbacks();

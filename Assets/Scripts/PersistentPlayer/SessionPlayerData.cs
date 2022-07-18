@@ -1,5 +1,12 @@
 using UnityEngine;
 
+public interface ISessionPlayerData
+{
+    public ulong ClientID { get; set; }
+    public bool IsConnected { get; set; }
+    public void Reinitialize();
+}
+
 public struct SessionPlayerData : ISessionPlayerData
 {
     public string PlayerName;

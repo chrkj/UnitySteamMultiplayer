@@ -8,7 +8,6 @@ public class PersistentPlayerRuntimeCollection : RuntimeCollection<PersistentPla
         foreach (var player in Items)
         {
             if (clientID != player.OwnerClientId) continue;
-            
             persistentPlayer = player;
             return true;
         }
