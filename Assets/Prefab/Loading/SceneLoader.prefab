@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb9b0b6ae1894b9683dee7d0d1d2712c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ClientLoadingScreen: {fileID: 0}
+  m_ClientLoadingScreen: {fileID: 4058245448867751611, guid: 531ba92be2e56164a87ab07cd2e63e1c, type: 3}
   m_LoadingProgressManager: {fileID: 1409076866629288953}
 --- !u!114 &1409076866629288958
 MonoBehaviour:
