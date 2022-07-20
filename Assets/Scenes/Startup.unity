@@ -517,11 +517,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4058245448867751611, guid: 531ba92be2e56164a87ab07cd2e63e1c, type: 3}
       propertyPath: m_FadeOutDuration
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4058245448867751611, guid: 531ba92be2e56164a87ab07cd2e63e1c, type: 3}
       propertyPath: m_DelayBeforeFadeOut
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4058245448867751611, guid: 531ba92be2e56164a87ab07cd2e63e1c, type: 3}
       propertyPath: m_LoadingProgressManager

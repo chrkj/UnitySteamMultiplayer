@@ -51,9 +51,9 @@ namespace SceneLoading
             }
             else
             {
-                var loadOperation = SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
-                if (loadSceneMode != LoadSceneMode.Single) return;
                 m_ClientLoadingScreen.StartLoadingScreen(sceneName);
+                var loadOperation = SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
+                //if (loadSceneMode != LoadSceneMode.Single) return;
                 m_LoadingProgressManager.LocalLoadOperation = loadOperation;
             }
         }
