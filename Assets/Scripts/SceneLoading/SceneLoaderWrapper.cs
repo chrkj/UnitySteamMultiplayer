@@ -51,9 +51,9 @@ namespace SceneLoading
             }
             else
             {
-                m_ClientLoadingScreen.StartLoadingScreen(sceneName);
                 var loadOperation = SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
-                //if (loadSceneMode != LoadSceneMode.Single) return;
+                if (loadSceneMode != LoadSceneMode.Single) return;
+                m_ClientLoadingScreen.StartLoadingScreen(sceneName);
                 m_LoadingProgressManager.LocalLoadOperation = loadOperation;
             }
         }
@@ -124,7 +124,13 @@ namespace SceneLoading
                     {
                         // Send client RPC to make sure the client stops the loading screen after the server handles what it needs to after
                         // the client finished synchronizing, for example character spawning done server side should still be hidden by loading screen.
-                        StopLoadingScreenClientRpc(new ClientRpcParams { Send = new ClientRpcSendParams { TargetClientIds = new[] { sceneEvent.ClientId } } });
+                        StopLoadingScreenClientRpc(new ClientRpcParams
+                        {
+                            Send = new ClientRpcSendParams
+                            {
+                                TargetClientIds = new[] { sceneEvent.ClientId }
+                            }
+                        });
                     }
                     break;
                 }
