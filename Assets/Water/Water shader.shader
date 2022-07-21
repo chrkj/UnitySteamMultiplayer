@@ -3,12 +3,6 @@ Shader "Custom/Water Shader"
 	// Show values to edit in inspector
 	Properties
 	{
-		_DeepColor ("Deep Color", Color) = (1,1,1,1)
-		_ShallowColor ("Shallow Color", Color) = (0,0,0,1)
-		_ColDepthFactor ("Color Depth Factor", float) = 1
-		_FresnelPow ("Fresnel Power", float) = 1
-		_MinAlpha ("Min Alpha", float) = 0.7
-		_ShorelineFadeStrength ("Shoreline Fade Strength", float) = 1
 	}
 
 	SubShader
@@ -27,12 +21,13 @@ Shader "Custom/Water Shader"
 			#pragma fragment frag
 
 			// Define variables
-			float _FresnelPow;
-			float _ColDepthFactor;
-			float _MinAlpha;
-			float _ShorelineFadeStrength;
-			float4 _DeepColor;
-			float4 _ShallowColor;
+			float FresnelPower;
+			float ColorDepthFactor;
+			float MinAlpha;
+			float ShorelineFadeStrength;
+			float3 DirToSun;
+			float4 DeepColor;
+			float4 ShallowColor;
 			sampler2D _CameraDepthTexture;
 			
 			// The object data that's put into the vertex shader
@@ -72,13 +67,13 @@ Shader "Custom/Water Shader"
 				const float distToTerrain = LinearEyeDepth(nonLinearDepth);
 				const float distToWater = i.screenPos.w;
 				const float waterViewDepth = distToTerrain - distToWater;
-				float3 waterColor = lerp(_ShallowColor, _DeepColor, 1 - exp(-waterViewDepth * _ColDepthFactor));
+				float3 waterColor = lerp(ShallowColor, DeepColor, 1 - exp(-waterViewDepth * ColorDepthFactor));
 
 				// Water transparency
 				const float3 viewDir = normalize(i.viewVector);
-				float alphaFresnel = 1 - saturate(pow(saturate(dot(-viewDir, i.worldNormal)), _FresnelPow));
-				alphaFresnel = max(_MinAlpha, alphaFresnel);
-				const float alphaEdge = 1 - exp(-waterViewDepth * _ShorelineFadeStrength);
+				float alphaFresnel = 1 - saturate(pow(saturate(dot(-viewDir, i.worldNormal)), FresnelPower));
+				alphaFresnel = max(MinAlpha, alphaFresnel);
+				const float alphaEdge = 1 - exp(-waterViewDepth * ShorelineFadeStrength);
 				float waterAlpha = saturate(alphaEdge * alphaFresnel);
 				
 				return fixed4(waterColor, waterAlpha);
