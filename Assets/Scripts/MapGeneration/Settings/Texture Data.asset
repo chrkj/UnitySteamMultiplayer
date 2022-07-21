@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24bba47da550c4e86a3c8ae5cf2e264d, type: 3}
   m_Name: Texture Data
   m_EditorClassIdentifier: 
-  AutoUpdate: 0
+  AutoUpdate: 1
   Layers:
   - TintStrength: 0.657
     StartHeight: 0
     BlendStrength: 0
-    Tint: {r: 0.11418684, g: 0.32311177, b: 0.4705882, a: 0}
-    Texture: {fileID: 2800000, guid: 0cd257cc7d4ad984e845e5bef85b9ed6, type: 3}
+    Tint: {r: 0.59607846, g: 0.41568628, b: 0.18431373, a: 0}
+    Texture: {fileID: 2800000, guid: 1c2474b2031a8874ca0af347a8591f6c, type: 3}
     TextureScale: 36
   - TintStrength: 0
     StartHeight: 0.069
