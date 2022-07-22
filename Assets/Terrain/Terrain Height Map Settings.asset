@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb49c415c73a941729b11c3076268f15, type: 3}
+  m_Name: Terrain Height Map Settings
+  m_EditorClassIdentifier: 
+  AutoUpdate: 0
+  UseFalloff: 1
+  HeightMultiplier: 1
+  HeightCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.28205144
+      value: 0.3107871
+      inSlope: 0.0077314433
+      outSlope: 0.0077314433
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.10251155
+    - serializedVersion: 3
+      time: 0.5673174
+      value: 0.37884212
+      inSlope: 0.7685309
+      outSlope: 0.7685309
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  NoiseSettings:
+    Octaves: 8
+    Scale: 600
+    NormalizeMode: 0
+    Persistance: 0.398
+    Seed: 0
+    Offset: {x: 0, y: 0}
+    Lacunarity: 1.35

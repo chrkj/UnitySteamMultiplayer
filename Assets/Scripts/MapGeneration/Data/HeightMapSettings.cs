@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [CreateAssetMenu()]
-public class HeightMapSettings : UpdatableData 
+public class HeightMapSettings : UpdatableData
 {
 	public bool UseFalloff;
 	public float HeightMultiplier;
