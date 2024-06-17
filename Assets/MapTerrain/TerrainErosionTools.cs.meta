@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 3dbe2cc14a576c84ea9ad2ee0a9c8f9e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - HydraulicErosionComputeShader: {fileID: 7200000, guid: 10414e31ef4528d4dae6ae6706d296eb, type: 3}
+  - WindErosionComputeShader: {fileID: 7200000, guid: 2c22a7d82433e6e468b53d8ee8923a11, type: 3}
+  - SmoothSharpenComputeShader: {fileID: 7200000, guid: 31c4b9e035f948e49bf4d78f49ea872d, type: 3}
+  - TerraceComputeShader: {fileID: 7200000, guid: d7635caf1061fb540a370c6eae540614, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

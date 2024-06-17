@@ -1,0 +1,79 @@
+#pragma kernel Smooth
+#pragma kernel Sharpen
+
+RWTexture2D<float4> Result;
+Texture2D heightMap;
+int heightSize;
+int sWidth;
+
+float shstr;
+float pmstr;
+
+[numthreads(8,8,1)]
+void Smooth (uint3 id : SV_DispatchThreadID)
+{
+    int x = id.x;
+    int z = id.y;
+
+    //Get Average Height
+    float total = 0;
+    for (int a = -sWidth; a <= sWidth; a++)
+    {
+        for (int b = -sWidth; b <= sWidth; b++)
+        {
+            int xPos = clamp(x + a, 0, heightSize - 1);
+            int zPos = clamp(z + b, 0, heightSize - 1);
+            total += heightMap[float2(xPos, zPos)];
+        }
+    }
+    total /= ((sWidth * 2) + 1) * ((sWidth * 2) + 1);
+
+    Result[id.xy] = total;
+
+    if (x == 0 || x == heightSize - 1 || z == 0 || z == heightSize - 1)
+    {
+        Result[id.xy] = 0;
+    }
+}
+
+[numthreads(8, 8, 1)]
+void Sharpen(uint3 id : SV_DispatchThreadID)
+{
+    int x = id.x;
+    int z = id.y;
+
+    //Not completely sure how this works, I ripped it from Unity's Terrain Tools.
+
+    float tempHeightmap = heightMap[float2(x, z)];
+
+    float hl = heightMap[float2(x - 1, z)];
+    float hr = heightMap[float2(x + 1, z)];
+    float ht = heightMap[float2(x, z + 1)];
+    float hb = heightMap[float2(x, z - 1)];
+    float hc = heightMap[float2(x, z)];
+
+    float l = min(hl, hr);
+    float r = max(hl, hr);
+    float b = min(hb, ht);
+    float t = max(hb, ht);
+
+    float height = hc;
+
+    if (height > b && height < t)
+    {
+        float hbt01 = pow((height - b) / (t - b), shstr);
+        height = hbt01 * (t - b) + b;
+    }
+
+    if (height > l && height < r)
+    {
+        float hlr01 = pow((height - l) / (r - l), shstr);
+        height = hlr01 * (r - l) + l;
+    }
+
+    height = lerp(0.25 * (hl + hr + ht + hb), height, pmstr);
+
+    tempHeightmap = height;
+
+    Result[id.xy] = tempHeightmap;
+}

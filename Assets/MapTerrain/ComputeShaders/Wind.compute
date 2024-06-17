@@ -1,0 +1,161 @@
+float2 PerlinDirection(float2 p)
+{
+    p = p % 289;
+    float x = float(34 * p.x + 1) * p.x % 289 + p.y;
+    x = (34 * x + 1) * x % 289;
+    x = frac(x / 41) * 2 - 1;
+    return normalize(float2(x - floor(x + 0.5), abs(x) - 0.5));
+}
+
+float Perlin(float2 UV)
+{
+    float2 p = UV * 0.1;
+    float2 ip = floor(p);
+    float2 fp = frac(p);
+    float d00 = dot(PerlinDirection(ip), fp);
+    float d01 = dot(PerlinDirection(ip + float2(0, 1)), fp - float2(0, 1));
+    float d10 = dot(PerlinDirection(ip + float2(1, 0)), fp - float2(1, 0));
+    float d11 = dot(PerlinDirection(ip + float2(1, 1)), fp - float2(1, 1));
+    fp = fp * fp * fp * (fp * (fp * 6 - 15) + 10);
+    float Out = lerp(lerp(d00, d01, fp.y), lerp(d10, d11, fp.y), fp.x) + 0.5;
+    return Out;
+}
+
+#pragma kernel CSMain
+
+RWStructuredBuffer<float> map;
+StructuredBuffer<int> randomIndices;
+StructuredBuffer<int> brushIndices;
+StructuredBuffer<float> brushWeights;
+
+int mapSize;
+int brushLength;
+int borderSize;
+
+int maxLifetime;
+float inertia;
+float sedimentCapacityFactor;
+float minSedimentCapacity;
+float depositSpeed;
+float erodeSpeed;
+
+float evaporateSpeed;
+float gravity;
+float startSpeed;
+float startWind;
+float2 windDirection;
+
+// Returns float3(gradientX, gradientY, height)
+float3 CalculateHeightAndGradient(float posX, float posY) {
+    int coordX = (int)posX;
+    int coordY = (int)posY;
+
+    // Calculate droplet's offset inside the cell (0,0) = at NW node, (1,1) = at SE node
+    float x = posX - coordX;
+    float y = posY - coordY;
+
+    // Calculate heights of the four nodes of the droplet's cell
+    int nodeIndexNW = coordY * mapSize + coordX;
+    float heightNW = map[nodeIndexNW];
+    float heightNE = map[nodeIndexNW + 1];
+    float heightSW = map[nodeIndexNW + mapSize];
+    float heightSE = map[nodeIndexNW + mapSize + 1];
+
+    // Calculate droplet's direction of flow with bilinear interpolation of height difference along the edges
+    float gradientX = (heightNE - heightNW) * (1 - y) + (heightSE - heightSW) * y;
+    float gradientY = (heightSW - heightNW) * (1 - x) + (heightSE - heightNE) * x;
+
+    // Calculate height with bilinear interpolation of the heights of the nodes of the cell
+    float height = heightNW * (1 - x) * (1 - y) + heightNE * x * (1 - y) + heightSW * (1 - x) * y + heightSE * x * y;
+
+    return float3(gradientX, gradientY, height);
+}
+
+[numthreads(1024, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    int index = randomIndices[id.x];
+    float posX = float(index) % mapSize;
+    float posY = float(index) / mapSize;
+    float dirX = 0;
+    float dirY = 0;
+    float speed = startSpeed;
+    float wind = startWind;
+    float sediment = 0;
+
+    for (int lifetime = 0; lifetime < maxLifetime; lifetime++) {
+        int nodeX = (int)posX;
+        int nodeY = (int)posY;
+        int dropletIndex = nodeY * mapSize + nodeX;
+        // Calculate droplet's offset inside the cell (0,0) = at NW node, (1,1) = at SE node
+        float cellOffsetX = posX - nodeX;
+        float cellOffsetY = posY - nodeY;
+
+        //Vary Wind Direction
+        float scale = 4;
+        float strength = 1;
+
+        float perlinX = (Perlin(float2(posX * scale, posY * scale) * strength * 2)) + (1 - strength);
+        float perlinY = (Perlin(float2((posX * scale) + 5000, posY * scale)) * strength * 2) + (1 - strength);
+
+        float2 windDir = float2(windDirection.x * perlinX, windDirection.y * perlinY);
+
+        // Calculate droplet's height and direction of flow with bilinear interpolation of surrounding heights
+        float3 heightAndGradient = CalculateHeightAndGradient(posX, posY);
+
+        // Update the droplet's direction and position (move position 1 unit regardless of speed)
+        dirX = (dirX * inertia - windDir.x * (1 - inertia));
+        dirY = (dirY * inertia - windDir.y * (1 - inertia));
+        // Normalize direction
+        float len = max(0.01, sqrt(dirX * dirX + dirY * dirY));
+        dirX /= len;
+        dirY /= len;
+        posX += dirX;
+        posY += dirY;
+
+        // Stop simulating droplet if it's not moving or has flowed over edge of map
+        if ((dirX == 0 && dirY == 0) || posX < borderSize || posX > mapSize - borderSize || posY < borderSize || posY > mapSize - borderSize) {
+            break;
+        }
+
+        // Find the droplet's new height and calculate the deltaHeight
+        float newHeight = CalculateHeightAndGradient(posX, posY).z;
+        float deltaHeight = newHeight - heightAndGradient.z;
+
+        // Calculate the droplet's sediment capacity (higher when moving fast down a slope and contains lots of wind)
+        float sedimentCapacity = max(-deltaHeight * speed * wind * sedimentCapacityFactor, minSedimentCapacity);
+
+        // If carrying more sediment than capacity, or if flowing uphill:
+        if (sediment > sedimentCapacity || deltaHeight > 0) {
+            // If moving uphill (deltaHeight > 0) try fill up to the current height, otherwise deposit a fraction of the excess sediment
+            float amountToDeposit = (deltaHeight > 0) ? min(deltaHeight, sediment) : (sediment - sedimentCapacity) * depositSpeed;
+            sediment -= amountToDeposit;
+
+            // Add the sediment to the four nodes of the current cell using bilinear interpolation
+            // Deposition is not distributed over a radius (like erosion) so that it can fill small pits
+            map[dropletIndex] += amountToDeposit * (1 - cellOffsetX) * (1 - cellOffsetY);
+            map[dropletIndex + 1] += amountToDeposit * cellOffsetX * (1 - cellOffsetY);
+            map[dropletIndex + mapSize] += amountToDeposit * (1 - cellOffsetX) * cellOffsetY;
+            map[dropletIndex + mapSize + 1] += amountToDeposit * cellOffsetX * cellOffsetY;
+        }
+        else {
+            // Erode a fraction of the droplet's current carry capacity.
+            // Clamp the erosion to the change in height so that it doesn't dig a hole in the terrain behind the droplet
+            float amountToErode = min((sedimentCapacity - sediment) * erodeSpeed, -deltaHeight);
+
+            for (int i = 0; i < brushLength; i++) {
+                int erodeIndex = dropletIndex + brushIndices[i];
+
+                float weightedErodeAmount = amountToErode * brushWeights[i];
+                float deltaSediment = (map[erodeIndex] < weightedErodeAmount) ? map[erodeIndex] : weightedErodeAmount;
+                map[erodeIndex] -= deltaSediment;
+                sediment += deltaSediment;
+            }
+        }
+
+        // Update droplet's speed and wind content
+        speed = sqrt(max(0, speed * speed + deltaHeight * gravity));
+        wind *= (1 - evaporateSpeed);
+    }
+
+}

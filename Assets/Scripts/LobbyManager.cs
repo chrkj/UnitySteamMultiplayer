@@ -71,7 +71,7 @@ public class LobbyManager : NetworkBehaviour
             await Task.Delay(1000);
         }
         
-        SceneLoaderWrapper.Instance.LoadScene("TestScene", useNetworkSceneManager: true);
+        SceneLoaderWrapper.Instance.LoadScene("InGame", useNetworkSceneManager: true);
     }
 
     public void Ready()
